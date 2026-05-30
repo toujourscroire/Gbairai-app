@@ -188,14 +188,15 @@ CREATE INDEX IF NOT EXISTS idx_comments_content ON comments(content_id, created_
 
 -- ── VUES ──────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS content_views (
-  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id              UUID DEFAULT gen_random_uuid(),
   content_id      UUID NOT NULL REFERENCES contents(id) ON DELETE CASCADE,
   user_id         UUID REFERENCES users(id),
   session_id      TEXT,
   watch_duration_seconds FLOAT,
   completed       BOOLEAN DEFAULT false,
   source          TEXT CHECK (source IN ('feed','alert','profile','trending','whatsapp','external')),
-  created_at      TIMESTAMPTZ DEFAULT now()
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  PRIMARY KEY (id, created_at)
 ) PARTITION BY RANGE (created_at);
 
 -- Partitions hebdomadaires pour les perfs
@@ -203,8 +204,7 @@ CREATE TABLE IF NOT EXISTS content_views_current PARTITION OF content_views
   FOR VALUES FROM (now() - interval '1 week') TO (now() + interval '1 week');
 
 CREATE INDEX IF NOT EXISTS idx_views_content ON content_views(content_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_views_velocity ON content_views(content_id, created_at)
-  WHERE created_at > now() - interval '6 hours';
+CREATE INDEX IF NOT EXISTS idx_views_velocity ON content_views(content_id, created_at);
 
 -- ── ALERTES GBAIRAI ───────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS gbairai_alerts (
