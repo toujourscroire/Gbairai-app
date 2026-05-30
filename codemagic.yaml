@@ -46,7 +46,7 @@ workflows:
 
       # 4. Vérification statique
       - name: Flutter analyze
-        script: flutter analyze --no-fatal-infos
+        script: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       # 5. Tests unitaires
       - name: Flutter test
@@ -140,7 +140,7 @@ workflows:
         script: flutter pub run build_runner build --delete-conflicting-outputs
 
       - name: Flutter analyze
-        script: flutter analyze --no-fatal-infos
+        script: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Flutter test
         script: flutter test

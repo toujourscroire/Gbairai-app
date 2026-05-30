@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/design/design_tokens.dart';
-import '../../../../core/design/glassmorphism.dart';
 import '../../../../core/design/animations/haptic_service.dart';
 
 class CreationHubPage extends StatelessWidget {

@@ -3,7 +3,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/design/design_tokens.dart';
 import '../../../../core/design/glassmorphism.dart';
-import '../../../../shared/models/content_model.dart';
 
 class TrendsPage extends ConsumerStatefulWidget {
   const TrendsPage({super.key});

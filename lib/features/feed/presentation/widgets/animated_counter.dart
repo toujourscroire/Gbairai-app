@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/design/design_tokens.dart';
 
 class GbairaiCounter extends StatefulWidget {
@@ -19,20 +18,6 @@ class GbairaiCounter extends StatefulWidget {
 }
 
 class _GbairaiCounterState extends State<GbairaiCounter> {
-  int _previousCount = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _previousCount = widget.count;
-  }
-
-  @override
-  void didUpdateWidget(GbairaiCounter oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    _previousCount = oldWidget.count;
-  }
-
   @override
   Widget build(BuildContext context) {
     final formatted = _formatCount(widget.count);
@@ -87,7 +72,6 @@ class _GbairaiCounterState extends State<GbairaiCounter> {
   }
 }
 
-// Counter compact pour les boutons d'action
 class CompactCounter extends StatelessWidget {
   final int count;
   final Color? color;

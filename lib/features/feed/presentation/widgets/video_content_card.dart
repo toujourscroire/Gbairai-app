@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../core/design/design_tokens.dart';
 import '../../../../core/design/glassmorphism.dart';
-import '../../../../core/extensions/datetime_extensions.dart';
 import '../../../../shared/models/content_model.dart';
 import 'content_actions_column.dart';
 import 'content_info_row.dart';
@@ -26,8 +26,6 @@ class VideoContentCard extends StatefulWidget {
 class _VideoContentCardState extends State<VideoContentCard> {
   VideoPlayerController? _controller;
   bool _initialized = false;
-  double _watchStart = 0;
-
   @override
   void initState() {
     super.initState();
@@ -39,7 +37,6 @@ class _VideoContentCardState extends State<VideoContentCard> {
     super.didUpdateWidget(oldWidget);
     if (widget.isActive && !oldWidget.isActive) {
       _initPlayer();
-      _watchStart = DateTime.now().millisecondsSinceEpoch / 1000;
     } else if (!widget.isActive && oldWidget.isActive) {
       _controller?.pause();
     }
@@ -54,8 +51,8 @@ class _VideoContentCardState extends State<VideoContentCard> {
     await _controller!.initialize();
     if (mounted) {
       setState(() => _initialized = true);
-      _controller!.setLooping(true);
-      _controller!.play();
+      unawaited(_controller!.setLooping(true));
+      unawaited(_controller!.play());
     }
   }
 

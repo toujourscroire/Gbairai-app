@@ -43,7 +43,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // Si onboarding requis
       if (needsOnboarding && !isOnboardingRoute) {
-        return '${RouteNames.onboardingIdentity}?authId=${(authController as AuthNeedsOnboarding).authId}';
+        final onboarding = authController as AuthNeedsOnboarding;
+        return '${RouteNames.onboardingIdentity}?authId=${onboarding.authId}';
       }
 
       // Si non connecté et sur page protégée → welcome

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/design/design_tokens.dart';
-import '../../../../core/design/glassmorphism.dart';
-import '../../../../core/extensions/datetime_extensions.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});

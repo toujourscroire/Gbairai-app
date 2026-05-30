@@ -152,9 +152,5 @@ class FeedController extends StateNotifier<FeedState> {
 
 // ── Alerte active (Realtime) ───────────────────────────────────────────
 final activeAlertProvider = StreamProvider<Map<String, dynamic>?>((ref) {
-  final client = ref.watch(
-    Provider((ref) => ref.read(feedDatasourceProvider)),
-  );
-  // Stream Supabase Realtime sur les nouvelles alertes
   return Stream.empty(); // Implémentation complète dans alert_provider
 });
