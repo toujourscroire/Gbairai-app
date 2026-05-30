@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'design_tokens.dart';
 
@@ -180,7 +179,7 @@ abstract final class AppTheme {
       // ── PageTransitions ───────────────────────────────────────────
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.iOS: ZoomPageTransitionsBuilder(),
           TargetPlatform.android: ZoomPageTransitionsBuilder(),
         },
       ),

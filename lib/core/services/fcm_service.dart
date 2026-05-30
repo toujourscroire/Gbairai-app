@@ -2,7 +2,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
-import '../constants/app_constants.dart';
 import 'security/deep_link_security.dart';
 
 // Handler pour les messages en background (top-level function requise)

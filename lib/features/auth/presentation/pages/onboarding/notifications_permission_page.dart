@@ -45,7 +45,7 @@ class _NotificationsPermissionPageState
     await GHaptics.gbairaiAlert();
 
     // Demande la permission iOS
-    final granted = await FcmService.requestPermission();
+    await FcmService.requestPermission();
 
     if (mounted) {
       await _completeOnboarding();

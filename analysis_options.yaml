@@ -12,4 +12,5 @@ linter:
     avoid_print: true
     avoid_web_libraries_in_flutter: true
     prefer_const_constructors: false
+    prefer_const_literals_to_create_immutables: false
     unawaited_futures: false

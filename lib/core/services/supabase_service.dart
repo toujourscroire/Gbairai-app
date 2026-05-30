@@ -12,9 +12,8 @@ class SupabaseService {
       url: AppConstants.supabaseUrl,
       anonKey: AppConstants.supabaseAnonKey,
       authOptions: const FlutterAuthClientOptions(
-        authFlowType: AuthFlowType.pkce, // PKCE pour sécurité OAuth
+        authFlowType: AuthFlowType.pkce,
         autoRefreshToken: true,
-        persistSession: true,
       ),
       // Pas de log en production
       debug: false,

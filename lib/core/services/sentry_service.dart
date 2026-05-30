@@ -18,7 +18,7 @@ abstract final class SentryService {
         scope.level = level;
         if (extras != null) {
           extras.forEach((key, value) {
-            scope.setExtra(key, value);
+            scope.setTag(key, value.toString());
           });
         }
       },
@@ -36,7 +36,7 @@ abstract final class SentryService {
       withScope: (scope) {
         scope.setTag('type', 'security');
         if (context != null) {
-          context.forEach((k, v) => scope.setExtra(k, v));
+          context.forEach((k, v) => scope.setTag(k, v.toString()));
         }
       },
     );

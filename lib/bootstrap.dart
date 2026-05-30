@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'core/services/supabase_service.dart';
 import 'core/services/fcm_service.dart';
-import 'core/services/sentry_service.dart';
 import 'core/services/analytics_service.dart';
 import 'core/constants/app_constants.dart';
 import 'app.dart';

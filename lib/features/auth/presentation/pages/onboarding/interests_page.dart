@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../../core/design/design_tokens.dart';
 import '../../../../../core/design/animations/haptic_service.dart';
 import '../../../../../routing/route_names.dart';
-import '../../providers/auth_provider.dart';
 
 const _categories = [
   ('Humour', '😂'), ('Sport', '⚽'), ('Music', '🎵'), ('People', '👥'),

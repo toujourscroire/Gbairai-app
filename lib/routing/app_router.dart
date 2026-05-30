@@ -28,7 +28,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final isAuth = authController is AuthAuthenticated;
       final isLoading = authController is AuthInitial;
-      final needsOnboarding = authController is AuthNeedsOnboarding;
 
       final isAuthRoute = state.fullPath?.startsWith('/auth') ?? false;
       final isOnboardingRoute = state.fullPath?.startsWith('/onboarding') ?? false;
