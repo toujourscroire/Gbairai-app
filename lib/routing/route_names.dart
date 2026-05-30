@@ -27,4 +27,7 @@ abstract final class RouteNames {
   static const settings = '/settings';
   static const notificationSettings = '/settings/notifications';
   static const accountSettings = '/settings/account';
+
+  // Legal
+  static const legal = '/legal';
 }

@@ -16,6 +16,7 @@ import '../features/trends/presentation/pages/trends_page.dart';
 import '../features/creation/presentation/pages/creation_hub_page.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
 import '../features/notifications/presentation/pages/notifications_page.dart';
+import '../features/legal/presentation/pages/legal_page.dart';
 import '../shared/widgets/main_shell.dart';
 import 'route_names.dart';
 
@@ -99,6 +100,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => NotificationsPermissionPage(
           userData: state.extra as Map<String, dynamic>,
         ),
+      ),
+
+      // ── Legal ────────────────────────────────────────────────────────
+      GoRoute(
+        path: RouteNames.legal,
+        builder: (_, __) => const LegalPage(),
       ),
 
       // ── Alert (plein écran, pas dans le shell) ────────────────────────

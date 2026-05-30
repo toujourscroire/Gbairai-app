@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/design/design_tokens.dart';
 import '../../../../routing/route_names.dart';
 
@@ -91,6 +92,48 @@ class WelcomePage extends StatelessWidget {
                           ),
                         ),
                       ).animate().fadeIn(delay: 900.ms),
+
+                      const SizedBox(height: GSpacing.md),
+
+                      // CGU & Confidentialité
+                      Text.rich(
+                        TextSpan(
+                          text: 'En continuant, vous acceptez nos ',
+                          style: GTextStyle.bodySmall.copyWith(
+                            color: GColors.textTertiary,
+                          ),
+                          children: [
+                            WidgetSpan(
+                              child: GestureDetector(
+                                onTap: () => launchUrl(Uri.parse('https://gbairai.ci/terms')),
+                                child: Text(
+                                  'CGU',
+                                  style: GTextStyle.bodySmall.copyWith(
+                                    color: GColors.orange,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: GColors.orange,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const TextSpan(text: ' et notre '),
+                            WidgetSpan(
+                              child: GestureDetector(
+                                onTap: () => launchUrl(Uri.parse('https://gbairai.ci/privacy')),
+                                child: Text(
+                                  'Politique de confidentialité',
+                                  style: GTextStyle.bodySmall.copyWith(
+                                    color: GColors.orange,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: GColors.orange,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ).animate().fadeIn(delay: 1000.ms),
 
                       const SizedBox(height: GSpacing.lg),
                     ],
