@@ -61,6 +61,10 @@ workflows:
           flutter create --platforms=ios . --project-name app --org ci.gbairai
           # Restaurer nos fichiers iOS custom (AppDelegate, Info.plist, entitlements)
           git checkout HEAD -- ios/Runner/
+          # Injecter DEVELOPMENT_TEAM dans le xcodeproj généré
+          # (requis même avec --no-codesign dans Flutter 3.22+)
+          sed -i "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = $APPLE_TEAM_ID;/g" \
+            ios/Runner.xcodeproj/project.pbxproj
           # Installer les pods
           cd ios && pod install --repo-update
 
@@ -156,6 +160,8 @@ workflows:
         script: |
           flutter create --platforms=ios . --project-name app --org ci.gbairai
           git checkout HEAD -- ios/Runner/
+          sed -i "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = $APPLE_TEAM_ID;/g" \
+            ios/Runner.xcodeproj/project.pbxproj
           cd ios && pod install
 
       - name: Flutter build iOS (no sign)
