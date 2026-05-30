@@ -7,10 +7,9 @@ workflows:
       xcode: latest
       cocoapods: default
       groups:
-        - gbairai_secrets     # Groupe de variables dans Codemagic
+        - gbairai_secrets
       vars:
         BUNDLE_ID: ci.gbairai.app
-        FLUTTER_VERSION: "3.22.0"
       ios_signing:
         distribution_type: app_store
         bundle_identifier: ci.gbairai.app
@@ -23,85 +22,68 @@ workflows:
           include: true
 
     scripts:
-      # 0. Injecter GoogleService-Info.plist depuis le secret Codemagic
+      # 0. Injecter GoogleService-Info.plist depuis le secret base64
       - name: Inject GoogleService-Info.plist
         script: |
           echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > ios/Runner/GoogleService-Info.plist
 
-      # 1. Vérification de l'environnement
+      # 1. Environnement
       - name: Print environment
         script: |
           echo "Flutter: $(flutter --version)"
           echo "Xcode: $(xcodebuild -version)"
           echo "CocoaPods: $(pod --version)"
 
-      # 2. Récupération des dépendances Flutter
+      # 2. Dépendances Flutter
       - name: Flutter pub get
         script: flutter pub get
 
-      # 3. Génération du code Freezed / json_serializable
+      # 3. Génération code Freezed / json_serializable
       - name: Build runner
         script: |
           flutter pub run build_runner build --delete-conflicting-outputs
 
-      # 4. Vérification statique
+      # 4. Analyse statique
       - name: Flutter analyze
         script: flutter analyze --no-fatal-infos --no-fatal-warnings
 
-      # 5. Tests unitaires
+      # 5. Tests (non bloquants)
       - name: Flutter test
         script: flutter test
         ignore_failure: true
 
-      # 6. Génération du projet iOS natif + Pod install
+      # 6. Génération projet iOS + injection signing + pod install
       - name: Generate iOS & Pod install
         script: |
-          # flutter create génère xcodeproj, Podfile et Flutter/ xcconfigs manquants
+          # Génère xcodeproj, Podfile, Flutter/xcconfigs (manquants car pas de flutter create initial)
           # --project-name app --org ci.gbairai → bundle ID ci.gbairai.app
           flutter create --platforms=ios . --project-name app --org ci.gbairai
-          # Restaurer nos fichiers iOS custom (AppDelegate, Info.plist, entitlements)
+          # Restaurer nos fichiers iOS custom
           git checkout HEAD -- ios/Runner/
-          # Injecter DEVELOPMENT_TEAM dans le xcodeproj généré
-          # (requis même avec --no-codesign dans Flutter 3.22+)
+          # Codemagic injecte automatiquement le DEVELOPMENT_TEAM via xcode-project use-profiles
+          # On l'applique aussi dans le pbxproj pour éviter toute erreur de signing précoce
           sed -i "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = $APPLE_TEAM_ID;/g" \
             ios/Runner.xcodeproj/project.pbxproj
+          # Appliquer les profils de provisioning Codemagic
+          xcode-project use-profiles
           # Installer les pods
           cd ios && pod install --repo-update
 
-      # 7. Build iOS avec injection des secrets via dart-define
-      - name: Flutter build iOS
+      # 7. Build IPA signé + export (tout en un)
+      - name: Build IPA
         script: |
-          flutter build ios --release \
+          flutter build ipa --release \
             --dart-define=SUPABASE_URL=$SUPABASE_URL \
             --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
             --dart-define=SENTRY_DSN=$SENTRY_DSN \
             --dart-define=POSTHOG_API_KEY=$POSTHOG_KEY \
             --dart-define=POSTHOG_HOST=$POSTHOG_HOST \
             --dart-define=OPENAI_KEY=$OPENAI_KEY \
-            --no-codesign
-
-      # 8. Signature et export IPA
-      - name: Xcode archive
-        script: |
-          xcode-project use-profiles
-          xcodebuild -workspace ios/Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -archivePath build/ios/Runner.xcarchive \
-            archive \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM=$APPLE_TEAM_ID
-
-      - name: Export IPA
-        script: |
-          xcode-project build-ipa \
-            --workspace ios/Runner.xcworkspace \
-            --archive-path build/ios/Runner.xcarchive
+            --export-options-plist=/Users/builder/export_options.plist
 
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
 
     publishing:
       app_store_connect:
@@ -118,7 +100,7 @@ workflows:
           success: true
           failure: true
 
-  # Workflow de développement (pas de publication)
+  # Workflow développement — simulateur, pas de signing
   ios-dev:
     name: iOS — Dev Build
     max_build_duration: 30
@@ -160,19 +142,16 @@ workflows:
         script: |
           flutter create --platforms=ios . --project-name app --org ci.gbairai
           git checkout HEAD -- ios/Runner/
-          sed -i "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = $APPLE_TEAM_ID;/g" \
-            ios/Runner.xcodeproj/project.pbxproj
           cd ios && pod install
 
-      - name: Flutter build iOS (no sign)
+      # Build simulateur — aucun signing requis
+      - name: Flutter build iOS simulator
         script: |
-          flutter build ios --debug \
+          flutter build ios --debug --simulator \
             --dart-define=SUPABASE_URL=$SUPABASE_URL \
             --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
-            --dart-define=SENTRY_DSN=$SENTRY_DSN \
             --dart-define=POSTHOG_API_KEY=$POSTHOG_KEY \
-            --dart-define=POSTHOG_HOST=$POSTHOG_HOST \
-            --no-codesign
+            --dart-define=POSTHOG_HOST=$POSTHOG_HOST
 
     artifacts:
-      - build/ios/iphoneos/Runner.app
+      - build/ios/iphonesimulator/Runner.app
