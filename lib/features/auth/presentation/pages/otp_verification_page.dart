@@ -6,6 +6,7 @@ import 'dart:async';
 import '../../../../core/design/design_tokens.dart';
 import '../../../../core/design/animations/haptic_service.dart';
 import '../../../../routing/route_names.dart';
+import '../../../../core/error/failures.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/otp_input_field.dart';
 
@@ -151,10 +152,10 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
                 }),
               ).animate().fadeIn(delay: 200.ms),
 
-              if (hasError) ...[
+              if (authState is AuthError) ...[
                 const SizedBox(height: GSpacing.md),
                 Text(
-                  (authState as AuthError).failure.userMessage,
+                  authState.failure.userMessage,
                   style: GTextStyle.bodySmall.copyWith(color: GColors.error),
                 ).animate().shake(),
               ],

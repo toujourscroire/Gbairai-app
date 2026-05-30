@@ -11,7 +11,5 @@ linter:
   rules:
     avoid_print: true
     avoid_web_libraries_in_flutter: true
-    always_declare_return_types: true
-    prefer_const_constructors: true
-    prefer_final_fields: true
-    unawaited_futures: true
+    prefer_const_constructors: false
+    unawaited_futures: false

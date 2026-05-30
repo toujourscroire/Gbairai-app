@@ -6,6 +6,7 @@ import '../../../../core/design/design_tokens.dart';
 import '../../../../core/design/animations/haptic_service.dart';
 import '../../../../core/services/security/input_validator.dart';
 import '../../../../routing/route_names.dart';
+import '../../../../core/error/failures.dart';
 import '../providers/auth_provider.dart';
 
 class EmailAuthPage extends ConsumerStatefulWidget {
