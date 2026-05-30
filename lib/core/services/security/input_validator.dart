@@ -52,7 +52,7 @@ abstract final class InputValidator {
       return 'Uniquement lettres, chiffres, _ et -';
     }
     // Protection XSS — pas de caractères spéciaux HTML
-    if (RegExp(r'[<>&"\'\/]').hasMatch(value)) {
+    if (RegExp('[<>&"\'/]').hasMatch(value)) {
       return 'Caractères non autorisés';
     }
     return null;
