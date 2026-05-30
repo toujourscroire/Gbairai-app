@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'design_tokens.dart';
 
 abstract final class AppTheme {
   static ThemeData get darkTheme {
+    // Google Fonts appliqué globalement — remplace les déclarations TTF locales
+    final textThemeBase = GoogleFonts.soraTextTheme().copyWith(
+      bodyLarge: GoogleFonts.inter(textStyle: GTextStyle.bodyLarge),
+      bodyMedium: GoogleFonts.inter(textStyle: GTextStyle.bodyMedium),
+      bodySmall: GoogleFonts.inter(textStyle: GTextStyle.bodySmall),
+      labelLarge: GoogleFonts.inter(textStyle: GTextStyle.labelLarge),
+      labelMedium: GoogleFonts.inter(textStyle: GTextStyle.labelMedium),
+      labelSmall: GoogleFonts.inter(textStyle: GTextStyle.labelSmall),
+    );
+
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -34,20 +45,7 @@ abstract final class AppTheme {
       ),
 
       // ── Text ─────────────────────────────────────────────────────
-      textTheme: const TextTheme(
-        displayLarge: GTextStyle.displayLarge,
-        displayMedium: GTextStyle.displayMedium,
-        displaySmall: GTextStyle.displaySmall,
-        headlineLarge: GTextStyle.headlineLarge,
-        headlineMedium: GTextStyle.headlineMedium,
-        headlineSmall: GTextStyle.headlineSmall,
-        bodyLarge: GTextStyle.bodyLarge,
-        bodyMedium: GTextStyle.bodyMedium,
-        bodySmall: GTextStyle.bodySmall,
-        labelLarge: GTextStyle.labelLarge,
-        labelMedium: GTextStyle.labelMedium,
-        labelSmall: GTextStyle.labelSmall,
-      ),
+      textTheme: textThemeBase,
 
       // ── ElevatedButton ────────────────────────────────────────────
       elevatedButtonTheme: ElevatedButtonThemeData(

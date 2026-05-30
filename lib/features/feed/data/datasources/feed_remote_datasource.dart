@@ -86,20 +86,17 @@ class FeedRemoteDatasource {
     required String contentId,
     required double watchDurationSeconds,
     required String source,
+    String? sessionId,
   }) async {
-    // Validation de l'UUID avant envoi
     if (!InputValidator.isValidUuid(contentId)) return;
 
-    await _client.rpc('increment_view_count', params: {
+    // La fonction SQL gère l'insert dans content_views + le compteur atomique
+    await _client.rpc('increment_view', params: {
       'p_content_id': contentId,
-    });
-
-    await _client.from('content_views').insert({
-      'content_id': contentId,
-      'user_id': SupabaseService.currentUser?.id,
-      'watch_duration_seconds': watchDurationSeconds,
-      'completed': watchDurationSeconds > 0,
-      'source': source,
+      'p_session_id': sessionId ?? 'anon_${DateTime.now().millisecondsSinceEpoch}',
+      'p_watch_seconds': watchDurationSeconds,
+      'p_completed': watchDurationSeconds > 5,
+      'p_source': source,
     });
   }
 
@@ -147,7 +144,7 @@ class FeedRemoteDatasource {
         ''')
         .eq('content_id', contentId)
         .isFilter('deleted_at', null)
-        .isFilter('is_restricted', false)
+        .eq('is_restricted', false)
         .order('is_pinned', ascending: false)
         .order('created_at', ascending: true)
         .limit(100);

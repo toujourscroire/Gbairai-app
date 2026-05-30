@@ -23,6 +23,11 @@ workflows:
           include: true
 
     scripts:
+      # 0. Injecter GoogleService-Info.plist depuis le secret Codemagic
+      - name: Inject GoogleService-Info.plist
+        script: |
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > ios/Runner/GoogleService-Info.plist
+
       # 1. Vérification de l'environnement
       - name: Print environment
         script: |
@@ -60,7 +65,7 @@ workflows:
             --dart-define=SUPABASE_URL=$SUPABASE_URL \
             --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
             --dart-define=SENTRY_DSN=$SENTRY_DSN \
-            --dart-define=POSTHOG_KEY=$POSTHOG_KEY \
+            --dart-define=POSTHOG_API_KEY=$POSTHOG_KEY \
             --dart-define=POSTHOG_HOST=$POSTHOG_HOST \
             --dart-define=OPENAI_KEY=$OPENAI_KEY \
             --no-codesign
@@ -124,6 +129,10 @@ workflows:
           include: true
 
     scripts:
+      - name: Inject GoogleService-Info.plist
+        script: |
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > ios/Runner/GoogleService-Info.plist
+
       - name: Flutter pub get
         script: flutter pub get
 
@@ -146,7 +155,7 @@ workflows:
             --dart-define=SUPABASE_URL=$SUPABASE_URL \
             --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
             --dart-define=SENTRY_DSN=$SENTRY_DSN \
-            --dart-define=POSTHOG_KEY=$POSTHOG_KEY \
+            --dart-define=POSTHOG_API_KEY=$POSTHOG_KEY \
             --dart-define=POSTHOG_HOST=$POSTHOG_HOST \
             --no-codesign
 

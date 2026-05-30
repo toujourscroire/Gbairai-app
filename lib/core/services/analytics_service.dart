@@ -5,14 +5,13 @@ import '../constants/app_constants.dart';
 // Jamais de données personnelles identifiables
 abstract final class AnalyticsService {
   static Future<void> initialize() async {
-    await Posthog().setup(AppConstants.posthogApiKey, async (PostHogConfig config) {
-      config.host = AppConstants.posthogHost;
-      config.captureApplicationLifecycleEvents = true;
-      config.debug = !AppConstants.isProduction;
-      config.sendFeatureFlagEvent = false;
-      // Pas de capture automatique d'écran
-      config.captureScreenViews = false;
-    });
+    final config = PostHogConfig(AppConstants.posthogApiKey);
+    config.host = AppConstants.posthogHost;
+    config.captureApplicationLifecycleEvents = true;
+    config.debug = !AppConstants.isProduction;
+    config.sendFeatureFlagEvent = false;
+    config.captureScreenViews = false;
+    await Posthog().setup(config);
   }
 
   static Future<void> identify(String userId) async {
