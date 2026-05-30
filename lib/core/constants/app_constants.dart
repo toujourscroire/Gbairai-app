@@ -72,11 +72,11 @@ abstract final class AppConstants {
   static const int alertOpenRateThresholdPercent = 15;
 
   // ── Scoring de viralité ───────────────────────────────────────────
-  static const int scoreWeight_view = 1;
-  static const int scoreWeight_reaction = 3;
-  static const int scoreWeight_comment = 5;
-  static const int scoreWeight_share = 10;
-  static const int scoreWeight_voiceReaction = 8;
+  static const int scoreWeightView = 1;
+  static const int scoreWeightReaction = 3;
+  static const int scoreWeightComment = 5;
+  static const int scoreWeightShare = 10;
+  static const int scoreWeightVoiceReaction = 8;
   static const double scoreDecayFactor = 1.5;
   static const Duration scoringWindow = Duration(hours: 6);
 
