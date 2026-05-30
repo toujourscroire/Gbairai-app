@@ -1,0 +1,152 @@
+workflows:
+  ios-testflight:
+    name: iOS — TestFlight
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      groups:
+        - gbairai_secrets     # Groupe de variables dans Codemagic
+      vars:
+        BUNDLE_ID: ci.gbairai.app
+        FLUTTER_VERSION: "3.22.0"
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: ci.gbairai.app
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+
+    scripts:
+      # 1. Vérification de l'environnement
+      - name: Print environment
+        script: |
+          echo "Flutter: $(flutter --version)"
+          echo "Xcode: $(xcodebuild -version)"
+          echo "CocoaPods: $(pod --version)"
+
+      # 2. Récupération des dépendances Flutter
+      - name: Flutter pub get
+        script: flutter pub get
+
+      # 3. Génération du code Freezed / json_serializable
+      - name: Build runner
+        script: |
+          flutter pub run build_runner build --delete-conflicting-outputs
+
+      # 4. Vérification statique
+      - name: Flutter analyze
+        script: flutter analyze --no-fatal-infos
+
+      # 5. Tests unitaires
+      - name: Flutter test
+        script: flutter test --coverage
+        ignore_failure: true
+
+      # 6. Installation des pods iOS
+      - name: Pod install
+        script: |
+          cd ios && pod install --repo-update
+
+      # 7. Build iOS avec injection des secrets via dart-define
+      - name: Flutter build iOS
+        script: |
+          flutter build ios --release \
+            --dart-define=SUPABASE_URL=$SUPABASE_URL \
+            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
+            --dart-define=SENTRY_DSN=$SENTRY_DSN \
+            --dart-define=POSTHOG_KEY=$POSTHOG_KEY \
+            --dart-define=POSTHOG_HOST=$POSTHOG_HOST \
+            --dart-define=OPENAI_KEY=$OPENAI_KEY \
+            --no-codesign
+
+      # 8. Signature et export IPA
+      - name: Xcode archive
+        script: |
+          xcode-project use-profiles
+          xcodebuild -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -archivePath build/ios/Runner.xcarchive \
+            archive \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM=$APPLE_TEAM_ID
+
+      - name: Export IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace ios/Runner.xcworkspace \
+            --archive-path build/ios/Runner.xcarchive
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        beta_groups:
+          - Internal Testers
+      email:
+        recipients:
+          - dev@gbairai.ci
+        notify:
+          success: true
+          failure: true
+
+  # Workflow de développement (pas de publication)
+  ios-dev:
+    name: iOS — Dev Build
+    max_build_duration: 30
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      groups:
+        - gbairai_secrets
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: develop
+          include: true
+        - pattern: 'feature/*'
+          include: true
+
+    scripts:
+      - name: Flutter pub get
+        script: flutter pub get
+
+      - name: Build runner
+        script: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: Flutter analyze
+        script: flutter analyze --no-fatal-infos
+
+      - name: Flutter test
+        script: flutter test
+        ignore_failure: true
+
+      - name: Pod install
+        script: cd ios && pod install
+
+      - name: Flutter build iOS (no sign)
+        script: |
+          flutter build ios --debug \
+            --dart-define=SUPABASE_URL=$SUPABASE_URL \
+            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
+            --dart-define=SENTRY_DSN=$SENTRY_DSN \
+            --dart-define=POSTHOG_KEY=$POSTHOG_KEY \
+            --dart-define=POSTHOG_HOST=$POSTHOG_HOST \
+            --no-codesign
+
+    artifacts:
+      - build/ios/iphoneos/Runner.app

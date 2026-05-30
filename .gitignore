@@ -1,0 +1,71 @@
+# ══ Secrets — JAMAIS dans git ══
+.env
+.env.*
+*.env
+dart_defines/
+lib/core/constants/app_secrets.dart
+google-services.json
+GoogleService-Info.plist
+
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+*.lock
+
+# Generated files
+*.g.dart
+*.freezed.dart
+lib/generated/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner/GeneratedPluginRegistrant.*
+
+# Android
+android/.gradle/
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/**/GeneratedPluginRegistrant.java
+
+# SECRETS — JAMAIS commiter ces fichiers
+.env
+.env.*
+!.env.example
+google-services.json
+GoogleService-Info.plist
+ios/Runner/Secrets.xcconfig
+android/app/google-services.json
+**/secrets.yaml
+**/secrets.json
+*private_key*
+*.pem
+*.p8
+*.p12
+
+# Supabase secrets
+supabase/.env
+
+# Codemagic
+codemagic_private_key.pem
+
+# macOS
+.DS_Store
+*.swp
+
+# Coverage
+coverage/

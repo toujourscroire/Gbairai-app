@@ -1,0 +1,186 @@
+import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
+import '../../../../core/design/design_tokens.dart';
+import '../../../../core/design/glassmorphism.dart';
+import '../../../../core/extensions/datetime_extensions.dart';
+import '../../../../shared/models/content_model.dart';
+import 'content_actions_column.dart';
+import 'content_info_row.dart';
+
+class VideoContentCard extends StatefulWidget {
+  final ContentModel content;
+  final bool isActive;
+  final ValueChanged<String> onReact;
+
+  const VideoContentCard({
+    super.key,
+    required this.content,
+    required this.isActive,
+    required this.onReact,
+  });
+
+  @override
+  State<VideoContentCard> createState() => _VideoContentCardState();
+}
+
+class _VideoContentCardState extends State<VideoContentCard> {
+  VideoPlayerController? _controller;
+  bool _initialized = false;
+  double _watchStart = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isActive) _initPlayer();
+  }
+
+  @override
+  void didUpdateWidget(VideoContentCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive && !oldWidget.isActive) {
+      _initPlayer();
+      _watchStart = DateTime.now().millisecondsSinceEpoch / 1000;
+    } else if (!widget.isActive && oldWidget.isActive) {
+      _controller?.pause();
+    }
+  }
+
+  Future<void> _initPlayer() async {
+    if (widget.content.mediaUrl == null) return;
+
+    final url = widget.content.mediaUrl!;
+    _controller = VideoPlayerController.networkUrl(Uri.parse(url));
+
+    await _controller!.initialize();
+    if (mounted) {
+      setState(() => _initialized = true);
+      _controller!.setLooping(true);
+      _controller!.play();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  void _togglePlay() {
+    if (_controller == null) return;
+    setState(() {
+      if (_controller!.value.isPlaying) {
+        _controller!.pause();
+      } else {
+        _controller!.play();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _togglePlay,
+      onDoubleTap: () => widget.onReact('gbairai'),
+      child: Stack(
+        children: [
+          // ── Vidéo plein écran ────────────────────────────────────────
+          Positioned.fill(
+            child: _initialized && _controller != null
+                ? FittedBox(
+                    fit: BoxFit.cover,
+                    child: SizedBox(
+                      width: _controller!.value.size.width,
+                      height: _controller!.value.size.height,
+                      child: VideoPlayer(_controller!),
+                    ),
+                  )
+                : Container(
+                    color: GColors.black,
+                    child: widget.content.thumbnailUrl != null
+                        ? Image.network(
+                            widget.content.thumbnailUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                const _VideoPlaceholder(),
+                          )
+                        : const _VideoPlaceholder(),
+                  ),
+          ),
+
+          // ── Gradient overlay ─────────────────────────────────────────
+          const Positioned.fill(child: VideoGradientOverlay()),
+
+          // ── Barre de progression ─────────────────────────────────────
+          if (_initialized && _controller != null)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: VideoProgressIndicator(
+                _controller!,
+                allowScrubbing: true,
+                colors: VideoProgressColors(
+                  playedColor: GColors.orange,
+                  bufferedColor: GColors.orange.withValues(alpha: 0.3),
+                  backgroundColor: GColors.border,
+                ),
+                padding: EdgeInsets.zero,
+              ),
+            ),
+
+          // ── Pause indicator ──────────────────────────────────────────
+          if (_initialized &&
+              _controller != null &&
+              !_controller!.value.isPlaying)
+            Center(
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: GColors.glassBg,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.play_arrow_rounded,
+                  color: GColors.textPrimary,
+                  size: 36,
+                ),
+              ),
+            ),
+
+          // ── Actions droite ────────────────────────────────────────────
+          Positioned(
+            right: GSpacing.md,
+            bottom: 120,
+            child: ContentActionsColumn(
+              content: widget.content,
+              onReact: widget.onReact,
+            ),
+          ),
+
+          // ── Info bas-gauche ────────────────────────────────────────────
+          Positioned(
+            left: GSpacing.md,
+            right: 80,
+            bottom: GSpacing.xxl,
+            child: ContentInfoRow(content: widget.content),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VideoPlaceholder extends StatelessWidget {
+  const _VideoPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: GColors.surface,
+      child: const Center(
+        child: Icon(Icons.play_circle_outline, color: GColors.textTertiary, size: 60),
+      ),
+    );
+  }
+}
