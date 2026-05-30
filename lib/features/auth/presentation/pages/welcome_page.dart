@@ -105,7 +105,7 @@ class WelcomePage extends StatelessWidget {
                           children: [
                             WidgetSpan(
                               child: GestureDetector(
-                                onTap: () => launchUrl(Uri.parse('https://gbairai.ci/terms')),
+                                onTap: () => launchUrl(Uri.parse('https://gbairai.ci/terms'), mode: LaunchMode.externalApplication),
                                 child: Text(
                                   'CGU',
                                   style: GTextStyle.bodySmall.copyWith(
@@ -119,7 +119,7 @@ class WelcomePage extends StatelessWidget {
                             const TextSpan(text: ' et notre '),
                             WidgetSpan(
                               child: GestureDetector(
-                                onTap: () => launchUrl(Uri.parse('https://gbairai.ci/privacy')),
+                                onTap: () => launchUrl(Uri.parse('https://gbairai.ci/privacy'), mode: LaunchMode.externalApplication),
                                 child: Text(
                                   'Politique de confidentialité',
                                   style: GTextStyle.bodySmall.copyWith(
