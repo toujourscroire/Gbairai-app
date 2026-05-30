@@ -10,13 +10,6 @@ workflows:
         - gbairai_secrets
       vars:
         BUNDLE_ID: ci.gbairai.app
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: ci.gbairai.app
-      app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
 
     triggering:
       events:
@@ -56,24 +49,26 @@ workflows:
         script: flutter test
         ignore_failure: true
 
-      # 6. Génération projet iOS + injection signing + pod install
+      # 6. Génération projet iOS + pod install
       - name: Generate iOS & Pod install
         script: |
-          # Génère xcodeproj, Podfile, Flutter/xcconfigs (manquants car pas de flutter create initial)
-          # --project-name app --org ci.gbairai → bundle ID ci.gbairai.app
           flutter create --platforms=ios . --project-name app --org ci.gbairai
-          # Restaurer nos fichiers iOS custom
           git checkout HEAD -- ios/Runner/
-          # Codemagic injecte automatiquement le DEVELOPMENT_TEAM via xcode-project use-profiles
-          # On l'applique aussi dans le pbxproj pour éviter toute erreur de signing précoce
           sed -i "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = $APPLE_TEAM_ID;/g" \
             ios/Runner.xcodeproj/project.pbxproj
-          # Appliquer les profils de provisioning Codemagic
-          xcode-project use-profiles
-          # Installer les pods
           cd ios && pod install --repo-update
 
-      # 7. Build IPA signé + export (tout en un)
+      # 7. Signing — certificat + profil créés automatiquement via ASC API
+      - name: Set up code signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files $BUNDLE_ID \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
+
+      # 8. Build IPA signé
       - name: Build IPA
         script: |
           flutter build ipa --release \
@@ -148,7 +143,6 @@ workflows:
           git checkout HEAD -- ios/Runner/
           cd ios && pod install
 
-      # Build simulateur — aucun signing requis
       - name: Flutter build iOS simulator
         script: |
           flutter build ios --debug --simulator \
