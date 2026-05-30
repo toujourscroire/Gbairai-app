@@ -50,12 +50,18 @@ workflows:
 
       # 5. Tests unitaires
       - name: Flutter test
-        script: flutter test --coverage
+        script: flutter test
         ignore_failure: true
 
-      # 6. Installation des pods iOS
-      - name: Pod install
+      # 6. Génération du projet iOS natif + Pod install
+      - name: Generate iOS & Pod install
         script: |
+          # flutter create génère xcodeproj, Podfile et Flutter/ xcconfigs manquants
+          # --project-name app --org ci.gbairai → bundle ID ci.gbairai.app
+          flutter create --platforms=ios . --project-name app --org ci.gbairai
+          # Restaurer nos fichiers iOS custom (AppDelegate, Info.plist, entitlements)
+          git checkout HEAD -- ios/Runner/
+          # Installer les pods
           cd ios && pod install --repo-update
 
       # 7. Build iOS avec injection des secrets via dart-define
@@ -146,8 +152,11 @@ workflows:
         script: flutter test
         ignore_failure: true
 
-      - name: Pod install
-        script: cd ios && pod install
+      - name: Generate iOS & Pod install
+        script: |
+          flutter create --platforms=ios . --project-name app --org ci.gbairai
+          git checkout HEAD -- ios/Runner/
+          cd ios && pod install
 
       - name: Flutter build iOS (no sign)
         script: |
