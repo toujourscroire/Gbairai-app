@@ -6,6 +6,8 @@ import '../../../../shared/models/alert_model.dart';
 
 // Stream temps réel des alertes Gbairai
 final alertStreamProvider = StreamProvider<AlertModel?>((ref) {
+  // Guard — Supabase.client lance StateError si non initialisé
+  if (!SupabaseService.isReady) return const Stream.empty();
   final client = SupabaseService.client;
 
   return client
@@ -38,6 +40,7 @@ final currentAlertProvider = StateProvider<AlertModel?>((ref) => null);
 // Live view counter (Realtime) pour un contenu spécifique
 final liveViewCountProvider =
     StreamProvider.family<int, String>((ref, contentId) {
+  if (!SupabaseService.isReady) return const Stream.empty();
   return SupabaseService.client
       .from('contents')
       .stream(primaryKey: ['id'])
@@ -48,6 +51,7 @@ final liveViewCountProvider =
 // Live réactions en streaming
 final liveReactionsProvider =
     StreamProvider.family<List<Map<String, dynamic>>, String>((ref, contentId) {
+  if (!SupabaseService.isReady) return const Stream.empty();
   return SupabaseService.client
       .from('reactions')
       .stream(primaryKey: ['id'])

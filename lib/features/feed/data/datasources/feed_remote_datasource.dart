@@ -1,10 +1,12 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/security/input_validator.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../shared/models/content_model.dart';
 
 class FeedRemoteDatasource {
-  final _client = SupabaseService.client;
+  // Lazy getter — NE PAS utiliser final (évalué à la construction, avant init Supabase)
+  SupabaseClient get _client => SupabaseService.client;
 
   // ── Feed Pour Toi (algorithme tendances) ─────────────────────────
   Future<List<ContentModel>> getForYouFeed({
