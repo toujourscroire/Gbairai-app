@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,12 +21,27 @@ import '../features/legal/presentation/pages/legal_page.dart';
 import '../shared/widgets/main_shell.dart';
 import 'route_names.dart';
 
+// Listenable qui notifie GoRouter quand l'état auth change
+class _AuthNotifier extends ChangeNotifier {
+  _AuthNotifier(this._ref) {
+    _ref.listen<AuthState>(authControllerProvider, (_, __) => notifyListeners());
+  }
+  final Ref _ref;
+  AuthState get state => _ref.read(authControllerProvider);
+}
+
+final _authNotifierProvider = Provider<_AuthNotifier>((ref) {
+  return _AuthNotifier(ref);
+});
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final authController = ref.watch(authControllerProvider);
+  final notifier = ref.watch(_authNotifierProvider);
 
   return GoRouter(
     initialLocation: RouteNames.welcome,
+    refreshListenable: notifier,
     redirect: (context, state) {
+      final authController = notifier.state;
       final isAuth = authController is AuthAuthenticated;
       final isLoading = authController is AuthInitial;
 
