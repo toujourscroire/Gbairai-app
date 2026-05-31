@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../../core/services/supabase_service.dart';
 import '../../../../../core/design/design_tokens.dart';
 import '../../../../../core/design/animations/haptic_service.dart';
 import '../../../../../core/services/fcm_service.dart';
@@ -63,7 +63,10 @@ class _NotificationsPermissionPageState
       final ext = localPath.split('.').last.toLowerCase();
       final storagePath = 'avatars/$authId/avatar.$ext';
 
-      await Supabase.instance.client.storage
+      final client = SupabaseService.clientOrNull;
+      if (client == null) return null;
+
+      await client.storage
           .from('media')
           .uploadBinary(storagePath, bytes,
               fileOptions: FileOptions(
@@ -71,7 +74,7 @@ class _NotificationsPermissionPageState
                 upsert: true,
               ));
 
-      return Supabase.instance.client.storage
+      return client.storage
           .from('media')
           .getPublicUrl(storagePath);
     } catch (_) {

@@ -49,13 +49,42 @@ workflows:
         script: flutter test
         ignore_failure: true
 
-      # 6. Génération projet iOS + pod install
+      # 6. Génération projet iOS + ajout GoogleService-Info.plist au bundle + pod install
       - name: Generate iOS & Pod install
         script: |
           flutter create --platforms=ios . --project-name app --org ci.gbairai
           git checkout HEAD -- ios/Runner/
           sed -i "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = $APPLE_TEAM_ID;/g" \
             ios/Runner.xcodeproj/project.pbxproj
+
+          # ── CRITIQUE : ajouter GoogleService-Info.plist aux ressources Xcode ──
+          # flutter create génère un project.pbxproj vierge qui ne référence pas
+          # GoogleService-Info.plist → Firebase crash au lancement si absent du bundle.
+          gem install xcodeproj --quiet
+          ruby - <<'RUBY'
+          require 'xcodeproj'
+          project_path = 'ios/Runner.xcodeproj'
+          project = Xcodeproj::Project.open(project_path)
+          target  = project.targets.find { |t| t.name == 'Runner' }
+          group   = project.main_group.find_subpath('Runner', false)
+          plist_name = 'GoogleService-Info.plist'
+
+          # Vérifier si déjà présent pour éviter les doublons
+          already_added = target.resources_build_phase.files.any? do |f|
+            f.file_ref&.path == plist_name
+          end
+
+          unless already_added
+            file_ref = group.new_reference(plist_name)
+            target.resources_build_phase.add_file_reference(file_ref)
+            puts "[xcodeproj] #{plist_name} ajouté aux Copy Bundle Resources ✓"
+          else
+            puts "[xcodeproj] #{plist_name} déjà présent — skip"
+          end
+
+          project.save
+          RUBY
+
           cd ios && pod install --repo-update
 
       # 7. Signing — certificat + profil créés automatiquement via ASC API
@@ -140,6 +169,21 @@ workflows:
         script: |
           flutter create --platforms=ios . --project-name app --org ci.gbairai
           git checkout HEAD -- ios/Runner/
+
+          gem install xcodeproj --quiet
+          ruby - <<'RUBY'
+          require 'xcodeproj'
+          project = Xcodeproj::Project.open('ios/Runner.xcodeproj')
+          target  = project.targets.find { |t| t.name == 'Runner' }
+          group   = project.main_group.find_subpath('Runner', false)
+          plist_name = 'GoogleService-Info.plist'
+          unless target.resources_build_phase.files.any? { |f| f.file_ref&.path == plist_name }
+            target.resources_build_phase.add_file_reference(group.new_reference(plist_name))
+            puts "[xcodeproj] #{plist_name} ajouté ✓"
+          end
+          project.save
+          RUBY
+
           cd ios && pod install
 
       - name: Flutter build iOS simulator

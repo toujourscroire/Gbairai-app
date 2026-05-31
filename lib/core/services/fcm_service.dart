@@ -14,7 +14,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class FcmService {
   static final _log = Logger(printer: PrettyPrinter(methodCount: 0));
-  static final _fcm = FirebaseMessaging.instance;
+  // Lazy getter — NE PAS utiliser static final (évalué au chargement de la classe,
+  // avant FirebaseApp.configure). On accède à l'instance uniquement après initialize().
+  static FirebaseMessaging get _fcm => FirebaseMessaging.instance;
 
   static Future<void> initialize() async {
     await Firebase.initializeApp();
