@@ -19,11 +19,6 @@ workflows:
           include: true
 
     scripts:
-      # 0. Injecter GoogleService-Info.plist depuis le secret base64
-      - name: Inject GoogleService-Info.plist
-        script: |
-          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > ios/Runner/GoogleService-Info.plist
-
       # 1. Environnement
       - name: Print environment
         script: |
@@ -54,36 +49,78 @@ workflows:
         script: |
           flutter create --platforms=ios . --project-name app --org ci.gbairai
           git checkout HEAD -- ios/Runner/
+
+          # Ré-injecter la plist APRÈS git checkout (le checkout ne la touche pas car
+          # elle est gitignorée, mais on s'assure qu'elle est là avant le build Xcode)
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > ios/Runner/GoogleService-Info.plist
+
           sed -i "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = $APPLE_TEAM_ID;/g" \
             ios/Runner.xcodeproj/project.pbxproj
 
-          # ── CRITIQUE : ajouter GoogleService-Info.plist aux ressources Xcode ──
-          # flutter create génère un project.pbxproj vierge qui ne référence pas
-          # GoogleService-Info.plist → Firebase crash au lancement si absent du bundle.
-          gem install xcodeproj --quiet
-          ruby - <<'RUBY'
-          require 'xcodeproj'
-          project_path = 'ios/Runner.xcodeproj'
-          project = Xcodeproj::Project.open(project_path)
-          target  = project.targets.find { |t| t.name == 'Runner' }
-          group   = project.main_group.find_subpath('Runner', false)
-          plist_name = 'GoogleService-Info.plist'
+          # ── CRITIQUE : injecter GoogleService-Info.plist dans project.pbxproj ──
+          # xcodeproj gem reformate tout le fichier → SWBUtil.PropertyListConversionError.
+          # On utilise Python pour une chirurgie minimale (4 insertions, format intact).
+          python3 - <<'PYEOF'
+import re, secrets, sys
 
-          # Vérifier si déjà présent pour éviter les doublons
-          already_added = target.resources_build_phase.files.any? do |f|
-            f.file_ref&.path == plist_name
-          end
+pbxproj = 'ios/Runner.xcodeproj/project.pbxproj'
+with open(pbxproj, 'r', encoding='utf-8') as f:
+    content = f.read()
 
-          unless already_added
-            file_ref = group.new_reference(plist_name)
-            target.resources_build_phase.add_file_reference(file_ref)
-            puts "[xcodeproj] #{plist_name} ajouté aux Copy Bundle Resources ✓"
-          else
-            puts "[xcodeproj] #{plist_name} déjà présent — skip"
-          end
+if 'GoogleService-Info.plist' in content:
+    print('[pbxproj] GoogleService-Info.plist déjà présent — skip')
+    sys.exit(0)
 
-          project.save
-          RUBY
+# Générer deux UUIDs au format pbxproj (24 hex majuscules)
+def new_uuid():
+    return secrets.token_hex(12).upper()
+
+file_ref_id  = new_uuid()  # PBXFileReference
+build_file_id = new_uuid() # PBXBuildFile
+
+# 1. Ajouter PBXBuildFile
+build_file_entry = (
+    f'\t\t{build_file_id} /* GoogleService-Info.plist in Resources */ = '
+    f'{{isa = PBXBuildFile; fileRef = {file_ref_id} /* GoogleService-Info.plist */; }};\n'
+)
+content = content.replace(
+    '/* Begin PBXBuildFile section */',
+    '/* Begin PBXBuildFile section */\n' + build_file_entry, 1
+)
+
+# 2. Ajouter PBXFileReference
+file_ref_entry = (
+    f'\t\t{file_ref_id} /* GoogleService-Info.plist */ = '
+    f'{{isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; '
+    f'name = "GoogleService-Info.plist"; path = "GoogleService-Info.plist"; '
+    f'sourceTree = "<group>"; }};\n'
+)
+content = content.replace(
+    '/* Begin PBXFileReference section */',
+    '/* Begin PBXFileReference section */\n' + file_ref_entry, 1
+)
+
+# 3. Ajouter dans le groupe Runner (après AppDelegate.swift)
+content = re.sub(
+    r'(AppDelegate\.swift \*/,)',
+    r'\1\n\t\t\t\t' + file_ref_id + r' /* GoogleService-Info.plist */,',
+    content, count=1
+)
+
+# 4. Ajouter dans la phase Copy Bundle Resources (après Assets.xcassets)
+content = re.sub(
+    r'(Assets\.xcassets in Resources \*/,)',
+    r'\1\n\t\t\t\t' + build_file_id + r' /* GoogleService-Info.plist in Resources */,',
+    content, count=1
+)
+
+with open(pbxproj, 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print(f'[pbxproj] GoogleService-Info.plist injecté ✓')
+print(f'  PBXFileReference : {file_ref_id}')
+print(f'  PBXBuildFile     : {build_file_id}')
+PYEOF
 
           cd ios && pod install --repo-update
 
@@ -148,10 +185,6 @@ workflows:
           include: true
 
     scripts:
-      - name: Inject GoogleService-Info.plist
-        script: |
-          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > ios/Runner/GoogleService-Info.plist
-
       - name: Flutter pub get
         script: flutter pub get
 
@@ -169,20 +202,28 @@ workflows:
         script: |
           flutter create --platforms=ios . --project-name app --org ci.gbairai
           git checkout HEAD -- ios/Runner/
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > ios/Runner/GoogleService-Info.plist
 
-          gem install xcodeproj --quiet
-          ruby - <<'RUBY'
-          require 'xcodeproj'
-          project = Xcodeproj::Project.open('ios/Runner.xcodeproj')
-          target  = project.targets.find { |t| t.name == 'Runner' }
-          group   = project.main_group.find_subpath('Runner', false)
-          plist_name = 'GoogleService-Info.plist'
-          unless target.resources_build_phase.files.any? { |f| f.file_ref&.path == plist_name }
-            target.resources_build_phase.add_file_reference(group.new_reference(plist_name))
-            puts "[xcodeproj] #{plist_name} ajouté ✓"
-          end
-          project.save
-          RUBY
+          python3 - <<'PYEOF'
+import re, secrets, sys
+pbxproj = 'ios/Runner.xcodeproj/project.pbxproj'
+with open(pbxproj, 'r') as f:
+    content = f.read()
+if 'GoogleService-Info.plist' in content:
+    print('Already present'); sys.exit(0)
+def uid(): return secrets.token_hex(12).upper()
+fr, bf = uid(), uid()
+content = content.replace('/* Begin PBXBuildFile section */',
+    '/* Begin PBXBuildFile section */\n\t\t' + bf +
+    ' /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = ' + fr + ' /* GoogleService-Info.plist */; };\n', 1)
+content = content.replace('/* Begin PBXFileReference section */',
+    '/* Begin PBXFileReference section */\n\t\t' + fr +
+    ' /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };\n', 1)
+content = re.sub(r'(AppDelegate\.swift \*/,)', r'\1\n\t\t\t\t' + fr + ' /* GoogleService-Info.plist */,', content, 1)
+content = re.sub(r'(Assets\.xcassets in Resources \*/,)', r'\1\n\t\t\t\t' + bf + ' /* GoogleService-Info.plist in Resources */,', content, 1)
+with open(pbxproj, 'w') as f: f.write(content)
+print('GoogleService-Info.plist injected OK')
+PYEOF
 
           cd ios && pod install
 
