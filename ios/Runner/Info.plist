@@ -34,6 +34,8 @@
 	<string>Gbairai veut sauvegarder des médias dans ta galerie</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Gbairai utilise ta ville pour localiser ton contenu (quartier seulement, pas de GPS précis)</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Gbairai utilise ta ville pour localiser ton contenu (quartier seulement, pas de GPS précis)</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Utilise Face ID pour te connecter rapidement à Gbairai</string>
 	<key>UILaunchStoryboardName</key>
