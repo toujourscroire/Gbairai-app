@@ -10,12 +10,15 @@ import UserNotifications
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    // Firebase
-    FirebaseApp.configure()
 
-    // Notifications delegate
-    UNUserNotificationCenter.current().delegate = self
-    Messaging.messaging().delegate = self
+    // Firebase — guard against missing/invalid GoogleService-Info.plist
+    if let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
+       let plist = NSDictionary(contentsOfFile: path),
+       plist["GOOGLE_APP_ID"] != nil {
+      FirebaseApp.configure()
+      UNUserNotificationCenter.current().delegate = self
+      Messaging.messaging().delegate = self
+    }
 
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -27,7 +30,6 @@ import UserNotifications
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
   ) -> Bool {
-    // Valider que le schéma est autorisé avant de le passer à Flutter
     guard url.scheme == "gbairai" else { return false }
     return super.application(app, open: url, options: options)
   }
@@ -38,7 +40,6 @@ import UserNotifications
     continue userActivity: NSUserActivity,
     restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
   ) -> Bool {
-    // Valider que le domaine est autorisé
     if userActivity.activityType == NSUserActivityTypeBrowsingWeb,
        let url = userActivity.webpageURL,
        url.host?.hasSuffix("gbairai.ci") == true {

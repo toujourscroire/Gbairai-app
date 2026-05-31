@@ -7,7 +7,8 @@ import '../../../../core/error/failures.dart';
 import '../../../../shared/models/user_model.dart';
 
 class AuthRemoteDatasource {
-  final _client = SupabaseService.client;
+  // Lazy — accessed only when Supabase is guaranteed initialized
+  SupabaseClient get _client => SupabaseService.client;
 
   // ── Téléphone OTP ────────────────────────────────────────────────
   Future<void> sendPhoneOtp(String phone) async {

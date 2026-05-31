@@ -57,6 +57,7 @@ final authControllerProvider =
 
 // Stream d'authentification Supabase
 final authStateStreamProvider = StreamProvider<AuthState>((ref) async* {
+  if (!SupabaseService.isReady) return;
   await for (final event in SupabaseService.client.auth.onAuthStateChange) {
     final session = event.session;
     if (session == null) {
@@ -85,15 +86,23 @@ class AuthController extends StateNotifier<AuthState> {
   final SecureStorageService _secureStorage;
 
   Future<void> _init() async {
-    final session = SupabaseService.currentSession;
-    if (session == null) {
+    try {
+      if (!SupabaseService.isReady) {
+        state = AuthUnauthenticated();
+        return;
+      }
+      final session = SupabaseService.currentSession;
+      if (session == null) {
+        state = AuthUnauthenticated();
+        return;
+      }
+      final user = await _ds.getProfile(session.user.id);
+      state = user != null
+          ? AuthAuthenticated(user)
+          : AuthNeedsOnboarding(session.user.id);
+    } catch (e) {
       state = AuthUnauthenticated();
-      return;
     }
-    final user = await _ds.getProfile(session.user.id);
-    state = user != null
-        ? AuthAuthenticated(user)
-        : AuthNeedsOnboarding(session.user.id);
   }
 
   // ── Téléphone OTP ──────────────────────────────────────────────────
