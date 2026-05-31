@@ -106,6 +106,8 @@ workflows:
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
+        beta_app_description: "Version de test de Gbairai — Le Radar Social Ivoirien. Merci de signaler tout bug via les paramètres de l'app."
+        beta_app_feedback_email: dev@gbairai.ci
       email:
         recipients:
           - dev@gbairai.ci
