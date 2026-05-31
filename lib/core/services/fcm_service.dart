@@ -4,22 +4,63 @@ import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'security/deep_link_security.dart';
 
+// ── Constantes compile-time (dart-define injectées par Codemagic) ────────────
+// Zéro plist dans le bundle — évite SWBUtil.PropertyListConversionError sur
+// Xcode 16+ quand la plist est dans Copy Bundle Resources avec contenu invalide.
+const _kFirebaseApiKey    = String.fromEnvironment('FIREBASE_API_KEY');
+const _kFirebaseAppId     = String.fromEnvironment('FIREBASE_APP_ID');
+const _kFirebaseSenderId  = String.fromEnvironment('FIREBASE_SENDER_ID');
+const _kFirebaseProjectId = String.fromEnvironment('FIREBASE_PROJECT_ID');
+const _kFirebaseStorage   = String.fromEnvironment('FIREBASE_STORAGE_BUCKET');
+const _kFirebaseBundle    = String.fromEnvironment('FIREBASE_IOS_BUNDLE_ID',
+    defaultValue: 'ci.gbairai.app');
+
+/// Retourne les options Firebase si toutes les valeurs essentielles sont présentes,
+/// null sinon (Firebase désactivé silencieusement — l'app ne crashe pas).
+FirebaseOptions? _buildFirebaseOptions() {
+  if (_kFirebaseApiKey.isEmpty ||
+      _kFirebaseAppId.isEmpty ||
+      _kFirebaseSenderId.isEmpty ||
+      _kFirebaseProjectId.isEmpty) {
+    return null;
+  }
+  return FirebaseOptions(
+    apiKey: _kFirebaseApiKey,
+    appId: _kFirebaseAppId,
+    messagingSenderId: _kFirebaseSenderId,
+    projectId: _kFirebaseProjectId,
+    storageBucket: _kFirebaseStorage.isEmpty ? null : _kFirebaseStorage,
+    iosBundleId: _kFirebaseBundle,
+  );
+}
+
 // Handler pour les messages en background (top-level function requise)
+// Tourne dans un isolate séparé — dart-defines disponibles car constantes compile-time.
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  // Pas de traitement de données sensibles en background
+  final opts = _buildFirebaseOptions();
+  if (opts != null && Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(options: opts);
+  }
   debugPrint('[FCM Background] message received: ${message.messageId}');
 }
 
 class FcmService {
   static final _log = Logger(printer: PrettyPrinter(methodCount: 0));
-  // Lazy getter — NE PAS utiliser static final (évalué au chargement de la classe,
-  // avant FirebaseApp.configure). On accède à l'instance uniquement après initialize().
+  // Lazy getter — NE PAS utiliser static final (évalué au chargement de la classe)
   static FirebaseMessaging get _fcm => FirebaseMessaging.instance;
 
   static Future<void> initialize() async {
-    await Firebase.initializeApp();
+    final opts = _buildFirebaseOptions();
+    if (opts == null) {
+      _log.w('[FCM] dart-defines Firebase absents — FCM désactivé (builds locaux OK)');
+      return;
+    }
+
+    // Firebase.apps.isEmpty évite "App already initialized"
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(options: opts);
+    }
 
     // Enregistrer le handler background
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);

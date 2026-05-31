@@ -50,13 +50,10 @@ workflows:
           flutter create --platforms=ios . --project-name app --org ci.gbairai
           git checkout HEAD -- ios/Runner/
 
-          # Injecter GoogleService-Info.plist APRÈS git checkout
-          # (la plist est gitignorée — checkout ne la touche pas, mais on garantit
-          # qu'elle est présente avant que le script pbxproj la référence)
-          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > ios/Runner/GoogleService-Info.plist
-
-          # Injecter la plist dans project.pbxproj (chirurgie minimale, format intact)
-          python3 scripts/inject_google_plist.py
+          # GoogleService-Info.plist : PAS injectée dans project.pbxproj
+          # Firebase est configuré via dart-define FirebaseOptions (voir Build IPA).
+          # Ajouter la plist à Copy Bundle Resources sur Xcode 16+ cause
+          # SWBUtil.PropertyListConversionError error 2 → archive failure.
 
           sed -i "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = $APPLE_TEAM_ID;/g" \
             ios/Runner.xcodeproj/project.pbxproj
@@ -77,6 +74,17 @@ workflows:
       # 8. Build IPA signé
       - name: Build IPA
         script: |
+          # ── Extraire les valeurs Firebase depuis GOOGLE_SERVICE_INFO_PLIST ──────
+          # La plist n'est PAS dans le bundle — Firebase initialisé via dart-define.
+          echo "$GOOGLE_SERVICE_INFO_PLIST" | base64 --decode > /tmp/gsi.plist
+          FIREBASE_API_KEY=$(/usr/libexec/PlistBuddy -c "Print :API_KEY" /tmp/gsi.plist 2>/dev/null || true)
+          FIREBASE_APP_ID=$(/usr/libexec/PlistBuddy -c "Print :GOOGLE_APP_ID" /tmp/gsi.plist 2>/dev/null || true)
+          FIREBASE_SENDER_ID=$(/usr/libexec/PlistBuddy -c "Print :GCM_SENDER_ID" /tmp/gsi.plist 2>/dev/null || true)
+          FIREBASE_PROJECT_ID=$(/usr/libexec/PlistBuddy -c "Print :PROJECT_ID" /tmp/gsi.plist 2>/dev/null || true)
+          FIREBASE_STORAGE_BUCKET=$(/usr/libexec/PlistBuddy -c "Print :STORAGE_BUCKET" /tmp/gsi.plist 2>/dev/null || true)
+          FIREBASE_IOS_BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :BUNDLE_ID" /tmp/gsi.plist 2>/dev/null || echo "ci.gbairai.app")
+          echo "[Firebase] FIREBASE_APP_ID=$(echo $FIREBASE_APP_ID | cut -c1-10)... FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID"
+
           flutter build ipa --release \
             --dart-define=SUPABASE_URL=$SUPABASE_URL \
             --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
@@ -84,6 +92,12 @@ workflows:
             --dart-define=POSTHOG_API_KEY=$POSTHOG_KEY \
             --dart-define=POSTHOG_HOST=$POSTHOG_HOST \
             --dart-define=OPENAI_KEY=$OPENAI_KEY \
+            --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" \
+            --dart-define=FIREBASE_APP_ID="$FIREBASE_APP_ID" \
+            --dart-define=FIREBASE_SENDER_ID="$FIREBASE_SENDER_ID" \
+            --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID" \
+            --dart-define=FIREBASE_STORAGE_BUCKET="$FIREBASE_STORAGE_BUCKET" \
+            --dart-define=FIREBASE_IOS_BUNDLE_ID="$FIREBASE_IOS_BUNDLE_ID" \
             --export-options-plist=/Users/builder/export_options.plist
 
     artifacts:

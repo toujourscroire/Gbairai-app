@@ -1,8 +1,10 @@
 import UIKit
 import Flutter
-import FirebaseCore
-import FirebaseMessaging
 import UserNotifications
+
+// Firebase est initialisé côté Dart par FcmService.initialize() via FirebaseOptions
+// (dart-define injectés par Codemagic). Plus besoin de FirebaseApp.configure() ici
+// ni de GoogleService-Info.plist dans le bundle → élimine SWBUtil.PropertyListConversionError.
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -11,14 +13,8 @@ import UserNotifications
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
 
-    // Firebase — guard against missing/invalid GoogleService-Info.plist
-    if let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
-       let plist = NSDictionary(contentsOfFile: path),
-       plist["GOOGLE_APP_ID"] != nil {
-      FirebaseApp.configure()
-      UNUserNotificationCenter.current().delegate = self
-      Messaging.messaging().delegate = self
-    }
+    // Délégué notifications push — Firebase Messaging plugin gère le reste
+    UNUserNotificationCenter.current().delegate = self
 
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -53,9 +49,4 @@ import UserNotifications
   }
 }
 
-// FCM Token refresh
-extension AppDelegate: MessagingDelegate {
-  func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-    // Token envoyé via FcmService.getToken() côté Flutter
-  }
-}
+// FCM token refresh géré par le plugin firebase_messaging via FcmService.dart
