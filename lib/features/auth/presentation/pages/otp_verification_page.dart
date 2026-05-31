@@ -39,8 +39,8 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
   @override
   void dispose() {
     _timer?.cancel();
-    for (final c in _controllers) c.dispose();
-    for (final f in _focusNodes) f.dispose();
+    for (final c in _controllers) { c.dispose(); }
+    for (final f in _focusNodes) { f.dispose(); }
     super.dispose();
   }
 
@@ -69,22 +69,21 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
         .read(authControllerProvider.notifier)
         .verifyPhoneOtp(phone: widget.phone, token: _otp);
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-      if (success) {
-        await GHaptics.success();
-        final state = ref.read(authControllerProvider);
-        if (state is AuthAuthenticated) {
-          context.go(RouteNames.feed);
-        } else if (state is AuthNeedsOnboarding) {
-          context.go(RouteNames.onboardingIdentity, extra: state.authId);
-        }
-      } else {
-        await GHaptics.error();
-        // Vider les champs en cas d'erreur
-        for (final c in _controllers) c.clear();
-        _focusNodes[0].requestFocus();
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+    if (success) {
+      await GHaptics.success();
+      final state = ref.read(authControllerProvider);
+      if (!mounted) return;
+      if (state is AuthAuthenticated) {
+        context.go(RouteNames.feed);
+      } else if (state is AuthNeedsOnboarding) {
+        context.go(RouteNames.onboardingIdentity, extra: state.authId);
       }
+    } else {
+      await GHaptics.error();
+      for (final c in _controllers) { c.clear(); }
+      if (mounted) _focusNodes[0].requestFocus();
     }
   }
 

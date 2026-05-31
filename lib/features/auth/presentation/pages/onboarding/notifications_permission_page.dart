@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show FileOptions;
 import '../../../../../core/services/supabase_service.dart';
 import '../../../../../core/design/design_tokens.dart';
 import '../../../../../core/design/animations/haptic_service.dart';
