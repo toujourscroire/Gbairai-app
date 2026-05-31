@@ -4,7 +4,7 @@ workflows:
     max_build_duration: 60
     environment:
       flutter: stable
-      xcode: latest
+      xcode: 16.3
       cocoapods: default
       groups:
         - gbairai_secrets
@@ -109,7 +109,7 @@ workflows:
     max_build_duration: 30
     environment:
       flutter: stable
-      xcode: latest
+      xcode: 16.3
       cocoapods: default
       groups:
         - gbairai_secrets
