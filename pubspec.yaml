@@ -85,6 +85,17 @@ dependencies:
   collection: ^1.18.0
   equatable: ^2.0.5
 
+# ── Dependency overrides ──────────────────────────────────────────────────────
+# record_platform_interface 1.6.0 added startStream() and changed hasPermission()
+# signature. record_linux 0.7.2 (transitive dep of record, compiled by Dart on ALL
+# platforms including iOS kernel snapshot) was never updated to implement these.
+# record 5.0.x depends on record_platform_interface: ^1.5.0 which allows 1.6.0
+# (Dart pub ^1.5.0 = >=1.5.0 <2.0.0). We must force the transitive resolution
+# to stay at <1.6.0. Override is justified: record_darwin 0.7.x (the iOS impl
+# we actually use) was built against 1.5.x and compiles correctly.
+dependency_overrides:
+  record_platform_interface: ">=1.5.0 <1.6.0"
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
