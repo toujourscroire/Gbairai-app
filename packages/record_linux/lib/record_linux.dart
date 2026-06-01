@@ -7,7 +7,7 @@ import 'package:record_platform_interface/record_platform_interface.dart';
 ///
 /// record_linux 0.7.2 on pub.dev was never updated to implement
 /// record_platform_interface >= 1.5.0. This local stub provides compilable
-/// no-op implementations of ALL abstract methods so the Dart kernel snapshot
+/// no-op implementations of ALL abstract members so the Dart kernel snapshot
 /// compiles on iOS/macOS/Android builds where record_linux is resolved as a
 /// transitive dependency but never instantiated at runtime.
 ///
@@ -18,6 +18,20 @@ class RecordLinux extends RecordPlatform {
   static void registerWith() {
     // No-op: on Linux this would register the implementation.
     // On iOS this is never called.
+  }
+
+  // ── RecordEventChannelPlatformInterface ──────────────────────────────────
+
+  @override
+  Stream<RecordState> onStateChanged(String recorderId) {
+    throw UnsupportedError('RecordLinux stub: not available on this platform');
+  }
+
+  // ── RecordMethodChannelPlatformInterface ─────────────────────────────────
+
+  @override
+  Future<void> cancel(String recorderId) async {
+    throw UnsupportedError('RecordLinux stub: not available on this platform');
   }
 
   @override

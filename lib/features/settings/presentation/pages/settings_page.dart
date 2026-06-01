@@ -286,6 +286,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -314,7 +315,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ),
     );
     if (confirmed == true && mounted) {
-      final messenger = ScaffoldMessenger.of(context);
       messenger.showSnackBar(
         const SnackBar(
           content: Text(
