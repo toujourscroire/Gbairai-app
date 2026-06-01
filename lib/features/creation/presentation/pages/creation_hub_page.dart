@@ -49,7 +49,7 @@ class CreationHubPage extends StatelessWidget {
                 gradientColors: const [Color(0xFFE85D04), Color(0xFF9B2226)],
                 onTap: () {
                   GHaptics.medium();
-                  // context.push('/create/video');
+                  context.push('/create/video');
                 },
               ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2),
 
@@ -63,7 +63,7 @@ class CreationHubPage extends StatelessWidget {
                 gradientColors: const [Color(0xFF7C3AED), Color(0xFFDB2777)],
                 onTap: () {
                   GHaptics.medium();
-                  // context.push('/create/text');
+                  context.push('/create/text');
                 },
               ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2),
 
@@ -77,7 +77,7 @@ class CreationHubPage extends StatelessWidget {
                 gradientColors: const [Color(0xFF0891B2), Color(0xFF059669)],
                 onTap: () {
                   GHaptics.medium();
-                  // context.push('/create/voice');
+                  context.push('/create/voice');
                 },
               ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2),
 

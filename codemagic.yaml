@@ -94,6 +94,7 @@ workflows:
             --dart-define=FIREBASE_PROJECT_ID="$FIREBASE_PROJECT_ID" \
             --dart-define=FIREBASE_STORAGE_BUCKET="$FIREBASE_STORAGE_BUCKET" \
             --dart-define=FIREBASE_IOS_BUNDLE_ID="$FIREBASE_IOS_BUNDLE_ID" \
+            --dart-define=CLOUDFLARE_CUSTOMER_CODE="$CLOUDFLARE_CUSTOMER_CODE" \
             --export-options-plist=/Users/builder/export_options.plist
 
     artifacts:

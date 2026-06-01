@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/security/input_validator.dart';
 import '../../../../core/error/failures.dart';
@@ -218,6 +220,49 @@ class FeedRemoteDatasource {
       'reason': reason,
       'detail': detail?.trim().substring(0, detail.length.clamp(0, 500)),
     });
+  }
+
+  // ── Réaction vocale ───────────────────────────────────────────────
+  Future<void> submitVoiceReaction({
+    required String contentId,
+    required String filePath,
+    required double durationSeconds,
+    bool isAnonymous = false,
+  }) async {
+    if (!InputValidator.isValidUuid(contentId)) return;
+    final userId = SupabaseService.currentUser?.id;
+    if (userId == null) throw const Failure.unauthenticated();
+    if (durationSeconds <= 0 || durationSeconds > 30) {
+      throw const Failure.validationError(
+          field: 'duration', message: 'Durée entre 1s et 30s');
+    }
+
+    final fileId = const Uuid().v4();
+    final storagePath = 'voice_reactions/$contentId/$fileId.m4a';
+
+    await _client.storage.from('media').upload(
+      storagePath,
+      File(filePath),
+      fileOptions: const FileOptions(
+        cacheControl: '3600',
+        upsert: false,
+        contentType: 'audio/m4a',
+      ),
+    );
+
+    final audioUrl =
+        _client.storage.from('media').getPublicUrl(storagePath);
+
+    await _client.from('voice_reactions').insert({
+      'content_id': contentId,
+      'user_id': userId,
+      'audio_url': audioUrl,
+      'duration_seconds': durationSeconds,
+      'is_anonymous': isAnonymous,
+    });
+
+    // Le compteur voice_reactions_count est mis à jour par le trigger
+    // `trg_voice_reactions_count` défini dans la migration 004.
   }
 
   // ── Helper de mapping ─────────────────────────────────────────────

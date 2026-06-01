@@ -14,6 +14,10 @@ import '../features/feed/presentation/pages/feed_page.dart';
 import '../features/alert/presentation/pages/alert_screen_page.dart';
 import '../features/trends/presentation/pages/trends_page.dart';
 import '../features/creation/presentation/pages/creation_hub_page.dart';
+import '../features/creation/presentation/pages/create_text_page.dart';
+import '../features/creation/presentation/pages/create_video_page.dart';
+import '../features/creation/presentation/pages/create_voice_page.dart';
+import '../features/settings/presentation/pages/settings_page.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
 import '../features/notifications/presentation/pages/notifications_page.dart';
 import '../features/legal/presentation/pages/legal_page.dart';
@@ -178,6 +182,37 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/content/:id',
             builder: (_, state) => const FeedPage(),
+          ),
+
+          // ── Settings ─────────────────────────────────────────────────
+          GoRoute(
+            path: RouteNames.settings,
+            pageBuilder: (_, __) =>
+                const MaterialPage(child: SettingsPage()),
+          ),
+          GoRoute(
+            path: RouteNames.notificationSettings,
+            pageBuilder: (_, __) =>
+                const MaterialPage(child: SettingsPage()),
+          ),
+          GoRoute(
+            path: RouteNames.accountSettings,
+            pageBuilder: (_, __) =>
+                const MaterialPage(child: SettingsPage()),
+          ),
+
+          // ── Création ─────────────────────────────────────────────────
+          GoRoute(
+            path: '/create/text',
+            pageBuilder: (_, __) => const MaterialPage(child: CreateTextPage()),
+          ),
+          GoRoute(
+            path: '/create/video',
+            pageBuilder: (_, __) => const MaterialPage(child: CreateVideoPage()),
+          ),
+          GoRoute(
+            path: '/create/voice',
+            pageBuilder: (_, __) => const MaterialPage(child: CreateVoicePage()),
           ),
         ],
       ),

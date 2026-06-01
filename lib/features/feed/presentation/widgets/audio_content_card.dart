@@ -6,6 +6,7 @@ import '../../../../core/extensions/datetime_extensions.dart';
 import '../../../../shared/models/content_model.dart';
 import 'content_actions_column.dart';
 import 'content_info_row.dart';
+import 'voice_reaction_sheet.dart';
 
 const _coverColors = {
   'orange': [GColors.orange, Color(0xFF9B2226)],
@@ -197,6 +198,12 @@ class _AudioContentCardState extends State<AudioContentCard>
             child: ContentActionsColumn(
               content: widget.content,
               onReact: widget.onReact,
+              onVoiceReact: () => showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                builder: (_) =>
+                    VoiceReactionSheet(contentId: widget.content.id),
+              ),
             ),
           ),
 

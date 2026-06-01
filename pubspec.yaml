@@ -1,7 +1,7 @@
 name: gbairai
 description: Le Radar Social Ivoirien — Plateforme de contenu buzz premium
 publish_to: none
-version: 1.0.0+13
+version: 1.0.0+14
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
@@ -38,7 +38,7 @@ dependencies:
   image_picker: ^1.1.2
   video_player: ^2.9.1
   just_audio: ^0.9.39
-  # record: removed — not used in code, causes record_linux compilation error
+  record: ^5.1.2
 
   # ── UI & Animations ──────────────────────────────────────────────
   google_fonts: ^6.2.1
@@ -73,6 +73,7 @@ dependencies:
   url_launcher: ^6.3.0
   share_plus: ^10.0.0
   path_provider: ^2.1.4
+  path: ^1.9.0
   intl: ^0.19.0
   logger: ^2.4.0
   package_info_plus: ^8.0.2

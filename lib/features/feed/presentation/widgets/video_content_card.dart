@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../core/design/design_tokens.dart';
 import '../../../../core/design/glassmorphism.dart';
+import '../../../../core/services/cloudflare_service.dart';
 import '../../../../shared/models/content_model.dart';
 import 'content_actions_column.dart';
 import 'content_info_row.dart';
+import 'voice_reaction_sheet.dart';
 
 class VideoContentCard extends StatefulWidget {
   final ContentModel content;
@@ -43,10 +45,18 @@ class _VideoContentCardState extends State<VideoContentCard> {
   }
 
   Future<void> _initPlayer() async {
-    if (widget.content.mediaUrl == null) return;
+    final url = CloudflareService.resolveVideoUrl(
+      streamId: widget.content.streamId,
+      mediaUrl: widget.content.mediaUrl,
+    );
+    if (url == null) return;
 
-    final url = widget.content.mediaUrl!;
-    _controller = VideoPlayerController.networkUrl(Uri.parse(url));
+    _controller = VideoPlayerController.networkUrl(
+      Uri.parse(url),
+      httpHeaders: const {
+        'User-Agent': 'Gbairai/1.0 Flutter',
+      },
+    );
 
     await _controller!.initialize();
     if (mounted) {
@@ -60,6 +70,14 @@ class _VideoContentCardState extends State<VideoContentCard> {
   void dispose() {
     _controller?.dispose();
     super.dispose();
+  }
+
+  void _showVoiceReactionSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => VoiceReactionSheet(contentId: widget.content.id),
+    );
   }
 
   void _togglePlay() {
@@ -152,6 +170,7 @@ class _VideoContentCardState extends State<VideoContentCard> {
             child: ContentActionsColumn(
               content: widget.content,
               onReact: widget.onReact,
+              onVoiceReact: () => _showVoiceReactionSheet(context),
             ),
           ),
 

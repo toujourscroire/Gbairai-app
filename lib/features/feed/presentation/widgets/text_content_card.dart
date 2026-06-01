@@ -3,6 +3,7 @@ import '../../../../core/design/design_tokens.dart';
 import '../../../../shared/models/content_model.dart';
 import 'content_actions_column.dart';
 import 'content_info_row.dart';
+import 'voice_reaction_sheet.dart';
 
 // Fonds animés pour les statuts écrits
 const _gradientBackgrounds = {
@@ -82,6 +83,11 @@ class TextContentCard extends StatelessWidget {
             child: ContentActionsColumn(
               content: content,
               onReact: onReact,
+              onVoiceReact: () => showModalBottomSheet(
+                context: context,
+                backgroundColor: Colors.transparent,
+                builder: (_) => VoiceReactionSheet(contentId: content.id),
+              ),
             ),
           ),
 
