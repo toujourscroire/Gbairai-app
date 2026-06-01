@@ -235,7 +235,7 @@ class _AlertScreenPageState extends ConsumerState<AlertScreenPage>
                               context.pop();
                               context.push('/content/${alert.contentId}?action=voice_react');
                             },
-                            child: const Text('🎤 Réagir'),
+                            child: const Text('Réagir'),
                           ),
                         ),
                         const SizedBox(width: GSpacing.sm),
@@ -303,7 +303,11 @@ class _ContentPlaceholderState extends State<_ContentPlaceholder>
           ),
         ),
         child: const Center(
-          child: Text('🔥', style: TextStyle(fontSize: 60)),
+          child: Icon(
+            Icons.local_fire_department_rounded,
+            color: Colors.white,
+            size: 56,
+          ),
         ),
       ),
     );

@@ -25,7 +25,11 @@ class ContentInfoRow extends StatelessWidget {
                   ? NetworkImage(content.authorAvatarUrl!)
                   : null,
               child: content.authorAvatarUrl == null
-                  ? const Text('👤', style: TextStyle(fontSize: 16))
+                  ? const Icon(
+                      Icons.person_outline_rounded,
+                      color: GColors.textTertiary,
+                      size: 18,
+                    )
                   : null,
             ),
             const SizedBox(width: GSpacing.sm),

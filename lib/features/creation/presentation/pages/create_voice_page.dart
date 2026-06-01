@@ -136,7 +136,7 @@ class _CreateVoicePageState extends ConsumerState<CreateVoicePage> {
     if (state is PublicationSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('🎤 Ton vocal est en cours de validation !'),
+          content: Text('Vocal en cours de validation'),
           backgroundColor: GColors.orange,
         ),
       );

@@ -51,16 +51,32 @@ class ProfilePage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('😕', style: TextStyle(fontSize: 48)),
+              const Icon(
+                Icons.person_off_outlined,
+                color: GColors.textTertiary,
+                size: 48,
+              ),
               const SizedBox(height: GSpacing.md),
               Text('Profil introuvable',
-                  style: GTextStyle.bodyMedium
+                  style: GTextStyle.bodyLarge
                       .copyWith(color: GColors.textSecondary)),
               const SizedBox(height: GSpacing.lg),
-              TextButton(
-                onPressed: () => context.pop(),
-                child: const Text('Retour',
-                    style: TextStyle(color: GColors.orange)),
+              GestureDetector(
+                onTap: () => context.pop(),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: GSpacing.lg, vertical: GSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: GColors.surface,
+                    borderRadius: BorderRadius.circular(GRadius.full),
+                    border: Border.all(color: GColors.border),
+                  ),
+                  child: Text(
+                    'Retour',
+                    style: GTextStyle.labelMedium
+                        .copyWith(color: GColors.orange),
+                  ),
+                ),
               ),
             ],
           ),
@@ -158,8 +174,11 @@ class _ProfileContent extends ConsumerWidget {
                                 ? CachedNetworkImageProvider(user.avatarUrl!)
                                 : null,
                             child: user.avatarUrl == null
-                                ? const Text('👤',
-                                    style: TextStyle(fontSize: 30))
+                                ? const Icon(
+                                    Icons.person_outline_rounded,
+                                    color: GColors.textTertiary,
+                                    size: 30,
+                                  )
                                 : null,
                           ),
                         ),
@@ -279,12 +298,26 @@ class _ProfileContent extends ConsumerWidget {
                       child: Center(
                         child: Column(
                           children: [
-                            const Text('🎭',
-                                style: TextStyle(fontSize: 48)),
+                            Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: GColors.surface,
+                                borderRadius:
+                                    BorderRadius.circular(GRadius.xl),
+                                border: Border.all(
+                                    color: GColors.border, width: 0.5),
+                              ),
+                              child: const Icon(
+                                Icons.grid_view_rounded,
+                                color: GColors.textTertiary,
+                                size: 24,
+                              ),
+                            ),
                             const SizedBox(height: GSpacing.md),
                             Text(
                               isMyProfile
-                                  ? 'Tu n\'as encore rien posté !'
+                                  ? 'Aucune publication pour l\'instant'
                                   : 'Aucune publication',
                               style: GTextStyle.bodyMedium.copyWith(
                                   color: GColors.textSecondary),

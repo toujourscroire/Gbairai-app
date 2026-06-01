@@ -84,7 +84,7 @@ class _CreateTextPageState extends ConsumerState<CreateTextPage> {
     if (state is PublicationSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('🔥 Ton Gbairai est en cours de validation !'),
+          content: Text('Publication en cours de validation'),
           backgroundColor: GColors.orange,
         ),
       );

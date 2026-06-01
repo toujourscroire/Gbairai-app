@@ -81,7 +81,7 @@ class _CreateVideoPageState extends ConsumerState<CreateVideoPage> {
     if (state is PublicationSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('🔥 Vidéo en cours de validation !'),
+          content: Text('Vidéo en cours de validation'),
           backgroundColor: GColors.orange,
         ),
       );

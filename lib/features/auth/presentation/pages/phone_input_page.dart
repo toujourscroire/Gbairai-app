@@ -56,13 +56,6 @@ class _PhoneInputPageState extends ConsumerState<PhoneInputPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GColors.void_,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () => context.pop(),
-        ),
-      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: GSpacing.xl),
@@ -71,18 +64,25 @@ class _PhoneInputPageState extends ConsumerState<PhoneInputPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: GSpacing.md),
+                // Back button
+                _BackButton(onTap: () => context.pop()),
                 const SizedBox(height: GSpacing.xl),
 
                 Text(
-                  'Ton numéro CI',
+                  'Ton numéro',
                   style: GTextStyle.displaySmall,
-                ).animate().fadeIn().slideX(begin: -0.1),
+                ).animate().fadeIn().slideY(
+                      begin: 0.15,
+                      duration: 400.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
 
                 const SizedBox(height: GSpacing.sm),
 
                 Text(
                   'On t\'envoie un code SMS pour confirmer',
-                  style: GTextStyle.bodyMedium.copyWith(
+                  style: GTextStyle.bodyLarge.copyWith(
                     color: GColors.textSecondary,
                   ),
                 ).animate().fadeIn(delay: 100.ms),
@@ -99,14 +99,20 @@ class _PhoneInputPageState extends ConsumerState<PhoneInputPage> {
                   ],
                   autofocus: true,
                   style: GTextStyle.headlineMedium.copyWith(
-                    letterSpacing: 2,
+                    letterSpacing: 3,
+                    color: GColors.textPrimary,
                   ),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: '+225 07 00 00 00 00',
-                    prefixIcon: const Padding(
-                      padding: EdgeInsets.all(14),
-                      child: Text('🇨🇮', style: TextStyle(fontSize: 24)),
+                    prefixIcon: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: GSpacing.md),
+                      child: Icon(
+                        Icons.phone_outlined,
+                        color: GColors.orange,
+                        size: 20,
+                      ),
                     ),
+                    prefixIconConstraints: BoxConstraints(minWidth: 52),
                   ),
                   validator: InputValidator.validateCiPhone,
                   onChanged: (_) => GHaptics.digit(),
@@ -115,29 +121,115 @@ class _PhoneInputPageState extends ConsumerState<PhoneInputPage> {
                 const SizedBox(height: GSpacing.sm),
 
                 Text(
-                  'Exemple : +225 07 00 00 00 00',
-                  style: GTextStyle.bodySmall,
+                  'Format : +225 07 00 00 00 00',
+                  style: GTextStyle.bodySmall.copyWith(
+                    color: GColors.textTertiary,
+                    fontSize: 12,
+                  ),
                 ).animate().fadeIn(delay: 300.ms),
 
                 const Spacer(),
 
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _submit,
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation(GColors.textPrimary),
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text('Envoyer le code'),
+                _SubmitButton(
+                  isLoading: _isLoading,
+                  onTap: _isLoading ? null : _submit,
                 ).animate().fadeIn(delay: 400.ms),
 
                 const SizedBox(height: GSpacing.lg),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BackButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _BackButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: GColors.surface,
+          borderRadius: BorderRadius.circular(GRadius.md),
+          border: Border.all(color: GColors.border),
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: GColors.textPrimary,
+          size: 16,
+        ),
+      ),
+    );
+  }
+}
+
+class _SubmitButton extends StatefulWidget {
+  final bool isLoading;
+  final VoidCallback? onTap;
+
+  const _SubmitButton({required this.isLoading, this.onTap});
+
+  @override
+  State<_SubmitButton> createState() => _SubmitButtonState();
+}
+
+class _SubmitButtonState extends State<_SubmitButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: widget.onTap != null ? (_) => setState(() => _pressed = true) : null,
+      onTapUp: widget.onTap != null
+          ? (_) {
+              setState(() => _pressed = false);
+              widget.onTap!();
+            }
+          : null,
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 80),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            color: _pressed ? const Color(0xFFD45500) : GColors.orange,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: _pressed
+                ? []
+                : [
+                    BoxShadow(
+                      color: GColors.orange.withValues(alpha: 0.28),
+                      blurRadius: 20,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+          ),
+          child: Center(
+            child: widget.isLoading
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      valueColor:
+                          AlwaysStoppedAnimation(GColors.textPrimary),
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Text(
+                    'Envoyer le code',
+                    style: GTextStyle.buttonPrimary,
+                  ),
           ),
         ),
       ),

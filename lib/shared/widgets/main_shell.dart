@@ -9,11 +9,36 @@ class MainShell extends ConsumerWidget {
   const MainShell({super.key, required this.child});
 
   static final _tabs = [
-    (icon: Icons.home_outlined,     activeIcon: Icons.home_rounded,       label: 'Accueil',     route: RouteNames.feed),
-    (icon: Icons.local_fire_department_outlined, activeIcon: Icons.local_fire_department, label: 'Tendances', route: RouteNames.trends),
-    (icon: Icons.add_circle_outline, activeIcon: Icons.add_circle,        label: '',            route: RouteNames.create),
-    (icon: Icons.notifications_outlined, activeIcon: Icons.notifications, label: 'Activité',   route: RouteNames.notifications),
-    (icon: Icons.person_outline,    activeIcon: Icons.person,             label: 'Profil',      route: RouteNames.myProfile),
+    (
+      icon: Icons.home_outlined,
+      activeIcon: Icons.home_rounded,
+      label: 'Accueil',
+      route: RouteNames.feed,
+    ),
+    (
+      icon: Icons.local_fire_department_outlined,
+      activeIcon: Icons.local_fire_department_rounded,
+      label: 'Tendances',
+      route: RouteNames.trends,
+    ),
+    (
+      icon: Icons.add,
+      activeIcon: Icons.add,
+      label: '',
+      route: RouteNames.create,
+    ),
+    (
+      icon: Icons.notifications_outlined,
+      activeIcon: Icons.notifications_rounded,
+      label: 'Activité',
+      route: RouteNames.notifications,
+    ),
+    (
+      icon: Icons.person_outline_rounded,
+      activeIcon: Icons.person_rounded,
+      label: 'Profil',
+      route: RouteNames.myProfile,
+    ),
   ];
 
   int _getIndex(String location) {
@@ -31,85 +56,118 @@ class MainShell extends ConsumerWidget {
     final currentIndex = _getIndex(location);
 
     return Scaffold(
-      extendBody: true, // Corps s'étend derrière la nav bar
+      extendBody: true,
       backgroundColor: GColors.void_,
       body: child,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: GColors.void_,
-          border: const Border(
-            top: BorderSide(color: GColors.border, width: 0.5),
-          ),
-        ),
-        child: SafeArea(
-          child: SizedBox(
-            height: 56,
-            child: Row(
-              children: List.generate(_tabs.length, (i) {
-                final tab = _tabs[i];
-                final isActive = i == currentIndex;
-                final isCenter = i == 2; // Bouton Créer
+      bottomNavigationBar: _BottomNavBar(
+        currentIndex: currentIndex,
+        tabs: _tabs,
+        onTap: (i) => context.go(_tabs[i].route),
+      ),
+    );
+  }
+}
 
-                if (isCenter) {
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: () => context.go(tab.route),
-                      child: Center(
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: GColors.orange,
-                            shape: BoxShape.circle,
-                            boxShadow: GShadow.orangeGlow,
-                          ),
-                          child: const Icon(
-                            Icons.add,
-                            color: GColors.textPrimary,
-                            size: 28,
-                          ),
+class _BottomNavBar extends StatelessWidget {
+  final int currentIndex;
+  final List<({IconData icon, IconData activeIcon, String label, String route})> tabs;
+  final ValueChanged<int> onTap;
+
+  const _BottomNavBar({
+    required this.currentIndex,
+    required this.tabs,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: GColors.void_,
+        border: Border(
+          top: BorderSide(color: GColors.border, width: 0.5),
+        ),
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          height: 52,
+          child: Row(
+            children: List.generate(tabs.length, (i) {
+              final tab = tabs[i];
+              final isActive = i == currentIndex;
+              final isCenter = i == 2;
+
+              if (isCenter) {
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () => onTap(i),
+                    behavior: HitTestBehavior.opaque,
+                    child: Center(
+                      child: Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: GColors.orange,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: GColors.orange.withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.add_rounded,
+                          color: Colors.white,
+                          size: 26,
                         ),
                       ),
                     ),
-                  );
-                }
+                  ),
+                );
+              }
 
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => context.go(tab.route),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AnimatedSwitcher(
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => onTap(i),
+                  behavior: HitTestBehavior.opaque,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: GDuration.fast,
+                        switchInCurve: Curves.easeOut,
+                        child: Icon(
+                          isActive ? tab.activeIcon : tab.icon,
+                          key: ValueKey('${i}_$isActive'),
+                          color: isActive
+                              ? GColors.orange
+                              : GColors.textTertiary,
+                          size: 24,
+                        ),
+                      ),
+                      if (tab.label.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        AnimatedDefaultTextStyle(
                           duration: GDuration.fast,
-                          child: Icon(
-                            isActive ? tab.activeIcon : tab.icon,
-                            key: ValueKey(isActive),
+                          style: GTextStyle.labelSmall.copyWith(
                             color: isActive
                                 ? GColors.orange
                                 : GColors.textTertiary,
-                            size: 24,
+                            fontSize: 10,
+                            fontWeight: isActive
+                                ? FontWeight.w600
+                                : FontWeight.w400,
                           ),
+                          child: Text(tab.label),
                         ),
-                        if (tab.label.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          AnimatedDefaultTextStyle(
-                            duration: GDuration.fast,
-                            style: GTextStyle.labelSmall.copyWith(
-                              color: isActive
-                                  ? GColors.orange
-                                  : GColors.textTertiary,
-                              fontSize: 10,
-                            ),
-                            child: Text(tab.label),
-                          ),
-                        ],
                       ],
-                    ),
+                    ],
                   ),
-                );
-              }),
-            ),
+                ),
+              );
+            }),
           ),
         ),
       ),

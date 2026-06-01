@@ -6,10 +6,20 @@ import '../../../../../core/design/design_tokens.dart';
 import '../../../../../core/design/animations/haptic_service.dart';
 import '../../../../../routing/route_names.dart';
 
+// Catégories avec icônes Material au lieu d'emoji
 const _categories = [
-  ('Humour', '😂'), ('Sport', '⚽'), ('Music', '🎵'), ('People', '👥'),
-  ('Food', '🍽️'), ('Mode', '👗'), ('Quartier', '🏘️'), ('Politique', '🗳️'),
-  ('Business', '💼'), ('Culture', '🎭'), ('Tech', '💻'), ('Religion', '🙏'),
+  ('Humour',    Icons.sentiment_very_satisfied_outlined),
+  ('Sport',     Icons.sports_soccer_outlined),
+  ('Musique',   Icons.music_note_outlined),
+  ('People',    Icons.groups_outlined),
+  ('Food',      Icons.restaurant_outlined),
+  ('Mode',      Icons.checkroom_outlined),
+  ('Quartier',  Icons.location_city_outlined),
+  ('Politique', Icons.account_balance_outlined),
+  ('Business',  Icons.trending_up_outlined),
+  ('Culture',   Icons.theater_comedy_outlined),
+  ('Tech',      Icons.devices_outlined),
+  ('Spirituel', Icons.auto_awesome_outlined),
 ];
 
 class InterestsPage extends ConsumerStatefulWidget {
@@ -50,164 +60,342 @@ class _InterestsPageState extends ConsumerState<InterestsPage> {
     return Scaffold(
       backgroundColor: GColors.void_,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: GSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: GSpacing.xl),
-              _OnboardingProgress(step: 2),
-              const SizedBox(height: GSpacing.xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Header ───────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  GSpacing.xl, GSpacing.lg, GSpacing.xl, 0),
+              child: _OnboardingHeader(step: 2, totalSteps: 3),
+            ),
 
-              Text(
-                'T\'es chaud pour quoi ?',
-                style: GTextStyle.displaySmall,
-              ).animate().fadeIn(),
+            // ── Titre ─────────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  GSpacing.xl, GSpacing.xl, GSpacing.xl, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tes centres\nd\'intérêt',
+                    style: GTextStyle.displaySmall,
+                  ).animate().fadeIn().slideY(
+                        begin: 0.15,
+                        duration: 400.ms,
+                        curve: Curves.easeOutCubic,
+                      ),
 
-              const SizedBox(height: GSpacing.sm),
+                  const SizedBox(height: GSpacing.sm),
 
-              Text(
-                'Choisis au moins 3 pour calibrer ton Gbairai',
-                style: GTextStyle.bodyMedium.copyWith(
-                  color: GColors.textSecondary,
-                ),
-              ).animate().fadeIn(delay: 100.ms),
+                  Text(
+                    'Sélectionne au moins 3 pour personnaliser ton feed',
+                    style: GTextStyle.bodyLarge.copyWith(
+                      color: GColors.textSecondary,
+                    ),
+                  ).animate().fadeIn(delay: 100.ms),
 
-              // Compteur
-              const SizedBox(height: GSpacing.md),
-              AnimatedContainer(
-                duration: GDuration.fast,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: GSpacing.md,
-                  vertical: GSpacing.sm,
-                ),
-                decoration: BoxDecoration(
-                  color: canContinue
-                      ? GColors.orange.withValues(alpha: 0.15)
-                      : GColors.surface,
-                  borderRadius: BorderRadius.circular(GRadius.full),
-                  border: Border.all(
-                    color: canContinue ? GColors.orange : GColors.border,
-                  ),
-                ),
-                child: Text(
-                  canContinue
-                      ? '✅ ${_selected.length} sélectionnées — Top !'
-                      : '${_selected.length}/3 minimum',
-                  style: GTextStyle.labelMedium.copyWith(
-                    color: canContinue ? GColors.orange : GColors.textSecondary,
-                  ),
-                ),
+                  const SizedBox(height: GSpacing.md),
+
+                  // Compteur discret
+                  _SelectionCounter(
+                    selected: _selected.length,
+                    canContinue: canContinue,
+                  ).animate().fadeIn(delay: 150.ms),
+                ],
               ),
+            ),
 
-              const SizedBox(height: GSpacing.xl),
+            const SizedBox(height: GSpacing.lg),
 
-              Expanded(
+            // ── Grille ───────────────────────────────────────────────────
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: GSpacing.xl),
                 child: GridView.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
-                    childAspectRatio: 1.1,
+                    childAspectRatio: 1.05,
                     crossAxisSpacing: GSpacing.sm,
                     mainAxisSpacing: GSpacing.sm,
                   ),
                   itemCount: _categories.length,
                   itemBuilder: (_, i) {
-                    final (label, emoji) = _categories[i];
+                    final (label, icon) = _categories[i];
                     final isSelected = _selected.contains(label);
-                    return GestureDetector(
+                    return _CategoryTile(
+                      label: label,
+                      icon: icon,
+                      isSelected: isSelected,
                       onTap: () => _toggle(label),
-                      child: AnimatedContainer(
-                        duration: GDuration.fast,
-                        curve: Curves.elasticOut,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? GColors.orange.withValues(alpha: 0.2)
-                              : GColors.surface,
-                          borderRadius: BorderRadius.circular(GRadius.lg),
-                          border: Border.all(
-                            color: isSelected ? GColors.orange : GColors.border,
-                            width: isSelected ? 2 : 1,
-                          ),
-                          boxShadow: isSelected ? GShadow.orangeGlow : null,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            AnimatedScale(
-                              scale: isSelected ? 1.2 : 1.0,
-                              duration: GDuration.fast,
-                              child: Text(emoji,
-                                style: const TextStyle(fontSize: 28)),
-                            ),
-                            const SizedBox(height: GSpacing.xs),
-                            Text(
-                              label,
-                              style: GTextStyle.labelSmall.copyWith(
-                                color: isSelected
-                                    ? GColors.orange
-                                    : GColors.textSecondary,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.w400,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ).animate(delay: Duration(milliseconds: i * 50))
-                        .fadeIn()
-                        .scale(begin: const Offset(0.8, 0.8));
+                    )
+                        .animate(delay: Duration(milliseconds: i * 40))
+                        .fadeIn(duration: 300.ms)
+                        .scale(
+                          begin: const Offset(0.9, 0.9),
+                          duration: 300.ms,
+                          curve: Curves.easeOutCubic,
+                        );
                   },
                 ),
               ),
+            ),
 
-              ElevatedButton(
-                onPressed: canContinue ? _next : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: canContinue ? GColors.orange : GColors.surface,
-                  foregroundColor: canContinue
-                      ? GColors.textPrimary
-                      : GColors.textTertiary,
-                ),
-                child: Text(
-                  canContinue
-                      ? 'Allons-y 🔥'
-                      : 'Sélectionne au moins 3',
-                ),
-              ).animate().fadeIn(),
-
-              const SizedBox(height: GSpacing.lg),
-            ],
-          ),
+            // ── CTA ───────────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  GSpacing.xl, GSpacing.md, GSpacing.xl, GSpacing.lg),
+              child: _ContinueButton(
+                enabled: canContinue,
+                onTap: _next,
+                label: 'Continuer',
+              ).animate().fadeIn(delay: 400.ms),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _OnboardingProgress extends StatelessWidget {
+// ── Widgets ───────────────────────────────────────────────────────────────────
+
+class _OnboardingHeader extends StatelessWidget {
   final int step;
-  const _OnboardingProgress({required this.step});
+  final int totalSteps;
+
+  const _OnboardingHeader({required this.step, required this.totalSteps});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: List.generate(3, (i) {
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            child: AnimatedContainer(
-              duration: GDuration.normal,
-              height: 4,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Étape $step',
+              style: GTextStyle.labelMedium.copyWith(
+                color: GColors.orange,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              ' sur $totalSteps',
+              style: GTextStyle.labelMedium.copyWith(
+                color: GColors.textTertiary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: GSpacing.sm),
+        Row(
+          children: List.generate(totalSteps, (i) {
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: i < totalSteps - 1 ? 4 : 0),
+                child: AnimatedContainer(
+                  duration: GDuration.normal,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: i < step ? GColors.orange : GColors.border,
+                    borderRadius: BorderRadius.circular(GRadius.full),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+}
+
+class _SelectionCounter extends StatelessWidget {
+  final int selected;
+  final bool canContinue;
+
+  const _SelectionCounter({required this.selected, required this.canContinue});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: GDuration.fast,
+      padding: const EdgeInsets.symmetric(
+        horizontal: GSpacing.md,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: canContinue
+            ? GColors.orange.withValues(alpha: 0.1)
+            : GColors.surface,
+        borderRadius: BorderRadius.circular(GRadius.full),
+        border: Border.all(
+          color: canContinue
+              ? GColors.orange.withValues(alpha: 0.35)
+              : GColors.border,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: GDuration.fast,
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: canContinue ? GColors.orange : GColors.textTertiary,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: GSpacing.sm),
+          Text(
+            canContinue
+                ? '$selected sélectionnées'
+                : '$selected / 3 minimum',
+            style: GTextStyle.labelSmall.copyWith(
+              color: canContinue ? GColors.orange : GColors.textTertiary,
+              fontWeight: canContinue ? FontWeight.w600 : FontWeight.w400,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryTile extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CategoryTile({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: GDuration.fast,
+        decoration: BoxDecoration(
+          color: isSelected
+              ? GColors.orange.withValues(alpha: 0.12)
+              : GColors.surface,
+          borderRadius: BorderRadius.circular(GRadius.lg),
+          border: Border.all(
+            color: isSelected
+                ? GColors.orange.withValues(alpha: 0.5)
+                : GColors.border,
+            width: isSelected ? 1.0 : 0.5,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: GDuration.fast,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
-                color: i < step ? GColors.orange : GColors.border,
-                borderRadius: BorderRadius.circular(GRadius.full),
+                color: isSelected
+                    ? GColors.orange.withValues(alpha: 0.2)
+                    : GColors.elevated,
+                borderRadius: BorderRadius.circular(GRadius.md),
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? GColors.orange : GColors.textTertiary,
+                size: 18,
+              ),
+            ),
+            const SizedBox(height: GSpacing.xs),
+            Text(
+              label,
+              style: GTextStyle.labelSmall.copyWith(
+                color: isSelected ? GColors.orange : GColors.textSecondary,
+                fontWeight:
+                    isSelected ? FontWeight.w600 : FontWeight.w400,
+                fontSize: 11,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ContinueButton extends StatefulWidget {
+  final bool enabled;
+  final VoidCallback onTap;
+  final String label;
+
+  const _ContinueButton({
+    required this.enabled,
+    required this.onTap,
+    required this.label,
+  });
+
+  @override
+  State<_ContinueButton> createState() => _ContinueButtonState();
+}
+
+class _ContinueButtonState extends State<_ContinueButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: widget.enabled ? (_) => setState(() => _pressed = true) : null,
+      onTapUp: widget.enabled
+          ? (_) {
+              setState(() => _pressed = false);
+              widget.onTap();
+            }
+          : null,
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 80),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            color: widget.enabled ? GColors.orange : GColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: widget.enabled ? null : Border.all(color: GColors.border),
+            boxShadow: widget.enabled && !_pressed
+                ? [
+                    BoxShadow(
+                      color: GColors.orange.withValues(alpha: 0.25),
+                      blurRadius: 20,
+                      offset: const Offset(0, 6),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              widget.label,
+              style: GTextStyle.buttonPrimary.copyWith(
+                color: widget.enabled
+                    ? GColors.textPrimary
+                    : GColors.textTertiary,
               ),
             ),
           ),
-        );
-      }),
+        ),
+      ),
     );
   }
 }

@@ -57,16 +57,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Future<void> _loadVersion() async {
     final info = await PackageInfo.fromPlatform();
     if (mounted) {
-      setState(() => _appVersion = '${info.version}+${info.buildNumber}');
+      setState(() => _appVersion = '${info.version} (${info.buildNumber})');
     }
   }
 
   Future<void> _toggleBiometrics(bool value) async {
     if (value) {
-      // Demander authentification avant d'activer
       try {
         final authenticated = await _localAuth.authenticate(
-          localizedReason: 'Confirme ton identité pour activer la biométrie',
+          localizedReason:
+              'Confirme ton identité pour activer la biométrie',
           options: const AuthenticationOptions(biometricOnly: true),
         );
         if (!authenticated) return;
@@ -99,154 +99,187 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GColors.void_,
-      appBar: AppBar(
-        backgroundColor: GColors.void_,
-        title: const Text('Paramètres'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () => context.pop(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // ── Header ───────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  GSpacing.xl, GSpacing.md, GSpacing.xl, 0),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => context.pop(),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: GColors.surface,
+                        borderRadius: BorderRadius.circular(GRadius.md),
+                        border: Border.all(color: GColors.border),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: GColors.textPrimary,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: GSpacing.md),
+                  Text('Paramètres', style: GTextStyle.headlineMedium),
+                ],
+              ),
+            ),
+
+            // ── Contenu ──────────────────────────────────────────────────
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.all(GSpacing.xl),
+                children: [
+                  // ── Compte ─────────────────────────────────────────────
+                  _SectionHeader(label: 'Compte'),
+                  const SizedBox(height: GSpacing.sm),
+                  _SettingsGroup(
+                    children: [
+                      _SettingsRow(
+                        icon: Icons.person_outline_rounded,
+                        label: 'Modifier le profil',
+                        onTap: () {},
+                      ),
+                      _Separator(),
+                      _SettingsRow(
+                        icon: Icons.lock_outline_rounded,
+                        label: 'Mot de passe',
+                        onTap: () {},
+                      ),
+                      _Separator(),
+                      _SettingsRow(
+                        icon: Icons.phone_outlined,
+                        label: 'Téléphone',
+                        value: SupabaseService.currentUser?.phone ?? '—',
+                        onTap: () {},
+                      ),
+                    ],
+                  ).animate().fadeIn(delay: 100.ms),
+
+                  const SizedBox(height: GSpacing.xl),
+
+                  // ── Sécurité ────────────────────────────────────────────
+                  _SectionHeader(label: 'Sécurité'),
+                  const SizedBox(height: GSpacing.sm),
+                  _SettingsGroup(
+                    children: [
+                      if (_biometricsAvailable) ...[
+                        _SettingsToggleRow(
+                          icon: Icons.fingerprint_rounded,
+                          label: 'Face ID / Touch ID',
+                          value: _biometricsEnabled,
+                          onChanged: _toggleBiometrics,
+                        ),
+                        _Separator(),
+                      ],
+                      _SettingsRow(
+                        icon: Icons.shield_outlined,
+                        label: 'Confidentialité',
+                        onTap: () {},
+                      ),
+                      _Separator(),
+                      _SettingsRow(
+                        icon: Icons.block_outlined,
+                        label: 'Comptes bloqués',
+                        onTap: () {},
+                      ),
+                    ],
+                  ).animate().fadeIn(delay: 200.ms),
+
+                  const SizedBox(height: GSpacing.xl),
+
+                  // ── Notifications ────────────────────────────────────────
+                  _SectionHeader(label: 'Notifications'),
+                  const SizedBox(height: GSpacing.sm),
+                  _SettingsGroup(
+                    children: [
+                      _SettingsToggleRow(
+                        icon: Icons.notifications_outlined,
+                        label: 'Notifications push',
+                        value: _notificationsEnabled,
+                        onChanged: _toggleNotifications,
+                      ),
+                      _Separator(),
+                      _SettingsRow(
+                        icon: Icons.tune_outlined,
+                        label: 'Préférences',
+                        onTap: () => context.push('/settings/notifications'),
+                      ),
+                    ],
+                  ).animate().fadeIn(delay: 300.ms),
+
+                  const SizedBox(height: GSpacing.xl),
+
+                  // ── À propos ─────────────────────────────────────────────
+                  _SectionHeader(label: 'À propos'),
+                  const SizedBox(height: GSpacing.sm),
+                  _SettingsGroup(
+                    children: [
+                      _SettingsRow(
+                        icon: Icons.info_outline_rounded,
+                        label: 'Version',
+                        value: _appVersion,
+                        onTap: () {},
+                        showArrow: false,
+                      ),
+                      _Separator(),
+                      _SettingsRow(
+                        icon: Icons.article_outlined,
+                        label: 'Conditions d\'utilisation',
+                        onTap: () => context.push('/legal'),
+                      ),
+                      _Separator(),
+                      _SettingsRow(
+                        icon: Icons.privacy_tip_outlined,
+                        label: 'Politique de confidentialité',
+                        onTap: () => context.push('/legal'),
+                      ),
+                    ],
+                  ).animate().fadeIn(delay: 400.ms),
+
+                  const SizedBox(height: GSpacing.xxl),
+
+                  // ── Déconnexion ──────────────────────────────────────────
+                  _DestructiveButton(
+                    label: 'Se déconnecter',
+                    isLoading: _loading,
+                    onTap: _loading ? null : _signOut,
+                    color: GColors.error,
+                    outlined: true,
+                  ).animate().fadeIn(delay: 500.ms),
+
+                  const SizedBox(height: GSpacing.lg),
+
+                  // ── Supprimer le compte ──────────────────────────────────
+                  Center(
+                    child: GestureDetector(
+                      onTap: () => _confirmDeleteAccount(context),
+                      child: Padding(
+                        padding: const EdgeInsets.all(GSpacing.md),
+                        child: Text(
+                          'Supprimer mon compte',
+                          style: GTextStyle.bodySmall.copyWith(
+                            color: GColors.textTertiary,
+                            decoration: TextDecoration.underline,
+                            decorationColor: GColors.textTertiary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ).animate().fadeIn(delay: 600.ms),
+
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
+          ],
         ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(GSpacing.md),
-        children: [
-          // ── Compte ──────────────────────────────────────────────────
-          _Section(
-            title: 'Compte',
-            children: [
-              _SettingsItem(
-                icon: Icons.person_outline,
-                title: 'Modifier le profil',
-                onTap: () {}, // TODO: edit profile page
-              ),
-              _SettingsItem(
-                icon: Icons.lock_outline,
-                title: 'Changer de mot de passe',
-                onTap: () {},
-              ),
-              _SettingsItem(
-                icon: Icons.phone_outlined,
-                title: 'Numéro de téléphone',
-                subtitle: SupabaseService.currentUser?.phone ?? '—',
-                onTap: () {},
-              ),
-            ],
-          ).animate().fadeIn(delay: 100.ms),
-
-          const SizedBox(height: GSpacing.md),
-
-          // ── Sécurité ─────────────────────────────────────────────────
-          _Section(
-            title: 'Sécurité',
-            children: [
-              if (_biometricsAvailable)
-                _SettingsToggle(
-                  icon: Icons.fingerprint,
-                  title: 'Face ID / Touch ID',
-                  subtitle: 'Connexion biométrique',
-                  value: _biometricsEnabled,
-                  onChanged: _toggleBiometrics,
-                ),
-              _SettingsItem(
-                icon: Icons.security_outlined,
-                title: 'Confidentialité',
-                onTap: () {},
-              ),
-              _SettingsItem(
-                icon: Icons.block_outlined,
-                title: 'Comptes bloqués',
-                onTap: () {},
-              ),
-            ],
-          ).animate().fadeIn(delay: 200.ms),
-
-          const SizedBox(height: GSpacing.md),
-
-          // ── Notifications ─────────────────────────────────────────────
-          _Section(
-            title: 'Notifications',
-            children: [
-              _SettingsToggle(
-                icon: Icons.notifications_outlined,
-                title: 'Notifications push',
-                subtitle: 'Réactions, commentaires, abonnés',
-                value: _notificationsEnabled,
-                onChanged: _toggleNotifications,
-              ),
-              _SettingsItem(
-                icon: Icons.tune_outlined,
-                title: 'Préférences notifs',
-                onTap: () => context.push('/settings/notifications'),
-              ),
-            ],
-          ).animate().fadeIn(delay: 300.ms),
-
-          const SizedBox(height: GSpacing.md),
-
-          // ── À propos ─────────────────────────────────────────────────
-          _Section(
-            title: 'À propos',
-            children: [
-              _SettingsItem(
-                icon: Icons.info_outline,
-                title: 'Version',
-                subtitle: _appVersion,
-                onTap: () {},
-              ),
-              _SettingsItem(
-                icon: Icons.article_outlined,
-                title: 'Conditions d\'utilisation',
-                onTap: () => context.push('/legal'),
-              ),
-              _SettingsItem(
-                icon: Icons.privacy_tip_outlined,
-                title: 'Politique de confidentialité',
-                onTap: () => context.push('/legal'),
-              ),
-            ],
-          ).animate().fadeIn(delay: 400.ms),
-
-          const SizedBox(height: GSpacing.xl),
-
-          // ── Déconnexion ──────────────────────────────────────────────
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: _loading ? null : _signOut,
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: GColors.error),
-                foregroundColor: GColors.error,
-                padding: const EdgeInsets.symmetric(vertical: GSpacing.md),
-              ),
-              child: _loading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: GColors.error),
-                    )
-                  : const Text('Se déconnecter'),
-            ),
-          ).animate().fadeIn(delay: 500.ms),
-
-          const SizedBox(height: GSpacing.xl),
-
-          // ── Supprimer le compte ───────────────────────────────────────
-          Center(
-            child: TextButton(
-              onPressed: () => _confirmDeleteAccount(context),
-              child: Text(
-                'Supprimer mon compte',
-                style: GTextStyle.bodySmall.copyWith(
-                  color: GColors.textTertiary,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 100),
-        ],
       ),
     );
   }
@@ -256,8 +289,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: GColors.surface,
-        title: const Text('Supprimer le compte ?',
-            style: TextStyle(color: GColors.textPrimary)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(GRadius.xl),
+        ),
+        title: const Text('Supprimer le compte ?'),
         content: const Text(
           'Cette action est irréversible. Toutes tes données seront supprimées dans 30 jours.',
           style: TextStyle(color: GColors.textSecondary),
@@ -265,128 +300,254 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler',
-                style: TextStyle(color: GColors.textSecondary)),
+            child: const Text('Annuler'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Supprimer',
-                style: TextStyle(color: GColors.error)),
+            child: Text(
+              'Supprimer',
+              style: GTextStyle.labelLarge.copyWith(color: GColors.error),
+            ),
           ),
         ],
       ),
     );
-    if (confirmed == true) {
-      // TODO: implémenter la suppression de compte via Edge Function
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-                'Demande de suppression enregistrée. Tu recevras un email de confirmation.'),
-            backgroundColor: GColors.error,
-          ),
-        );
-      }
+    if (confirmed == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Demande enregistrée. Tu recevras un email de confirmation.'),
+        ),
+      );
     }
   }
 }
 
-// ── Widgets helpers ──────────────────────────────────────────────────────────
+// ── Composants ───────────────────────────────────────────────────────────────
 
-class _Section extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-
-  const _Section({required this.title, required this.children});
+class _SectionHeader extends StatelessWidget {
+  final String label;
+  const _SectionHeader({required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(
-              left: GSpacing.sm, bottom: GSpacing.sm),
-          child: Text(
-            title.toUpperCase(),
-            style: GTextStyle.labelSmall.copyWith(
-              color: GColors.textTertiary,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: GColors.surface,
-            borderRadius: BorderRadius.circular(GRadius.lg),
-            border: Border.all(color: GColors.border),
-          ),
-          child: Column(children: children),
-        ),
-      ],
+    return Text(
+      label.toUpperCase(),
+      style: GTextStyle.labelSmall.copyWith(
+        color: GColors.textTertiary,
+        letterSpacing: 1.0,
+        fontSize: 11,
+      ),
     );
   }
 }
 
-class _SettingsItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final VoidCallback onTap;
+class _SettingsGroup extends StatelessWidget {
+  final List<Widget> children;
+  const _SettingsGroup({required this.children});
 
-  const _SettingsItem({
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: GColors.surface,
+        borderRadius: BorderRadius.circular(GRadius.lg),
+        border: Border.all(color: GColors.border, width: 0.5),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
+    );
+  }
+}
+
+class _SettingsRow extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final String? value;
+  final VoidCallback onTap;
+  final bool showArrow;
+
+  const _SettingsRow({
     required this.icon,
-    required this.title,
-    this.subtitle,
+    required this.label,
+    this.value,
     required this.onTap,
+    this.showArrow = true,
   });
 
   @override
+  State<_SettingsRow> createState() => _SettingsRowState();
+}
+
+class _SettingsRowState extends State<_SettingsRow> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: GColors.textSecondary),
-      title: Text(title,
-          style: const TextStyle(color: GColors.textPrimary)),
-      subtitle: subtitle != null
-          ? Text(subtitle!,
-              style: const TextStyle(color: GColors.textSecondary, fontSize: 12))
-          : null,
-      trailing: const Icon(Icons.arrow_forward_ios,
-          color: GColors.textTertiary, size: 14),
-      onTap: onTap,
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedContainer(
+        duration: GDuration.ultraFast,
+        color: _pressed ? GColors.elevated : Colors.transparent,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: GSpacing.md,
+            vertical: GSpacing.md,
+          ),
+          child: Row(
+            children: [
+              Icon(widget.icon, color: GColors.textSecondary, size: 20),
+              const SizedBox(width: GSpacing.md),
+              Expanded(
+                child: Text(widget.label, style: GTextStyle.bodyLarge),
+              ),
+              if (widget.value != null) ...[
+                Text(
+                  widget.value!,
+                  style: GTextStyle.bodySmall.copyWith(
+                    color: GColors.textTertiary,
+                  ),
+                ),
+                const SizedBox(width: GSpacing.sm),
+              ],
+              if (widget.showArrow)
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: GColors.textTertiary,
+                  size: 13,
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
 
-class _SettingsToggle extends StatelessWidget {
+class _SettingsToggleRow extends StatelessWidget {
   final IconData icon;
-  final String title;
-  final String? subtitle;
+  final String label;
   final bool value;
   final ValueChanged<bool> onChanged;
 
-  const _SettingsToggle({
+  const _SettingsToggleRow({
     required this.icon,
-    required this.title,
-    this.subtitle,
+    required this.label,
     required this.value,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: GColors.textSecondary),
-      title: Text(title,
-          style: const TextStyle(color: GColors.textPrimary)),
-      subtitle: subtitle != null
-          ? Text(subtitle!,
-              style: const TextStyle(color: GColors.textSecondary, fontSize: 12))
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: GSpacing.md,
+        vertical: GSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: GColors.textSecondary, size: 20),
+          const SizedBox(width: GSpacing.md),
+          Expanded(
+            child: Text(label, style: GTextStyle.bodyLarge),
+          ),
+          Switch.adaptive(
+            value: value,
+            onChanged: onChanged,
+            activeColor: GColors.orange,
+            trackOutlineColor: WidgetStatePropertyAll(GColors.border),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Separator extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 0.5,
+      margin: const EdgeInsets.only(left: 52),
+      color: GColors.border,
+    );
+  }
+}
+
+class _DestructiveButton extends StatefulWidget {
+  final String label;
+  final bool isLoading;
+  final VoidCallback? onTap;
+  final Color color;
+  final bool outlined;
+
+  const _DestructiveButton({
+    required this.label,
+    this.isLoading = false,
+    this.onTap,
+    required this.color,
+    this.outlined = false,
+  });
+
+  @override
+  State<_DestructiveButton> createState() => _DestructiveButtonState();
+}
+
+class _DestructiveButtonState extends State<_DestructiveButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown:
+          widget.onTap != null ? (_) => setState(() => _pressed = true) : null,
+      onTapUp: widget.onTap != null
+          ? (_) {
+              setState(() => _pressed = false);
+              widget.onTap!();
+            }
           : null,
-      trailing: Switch.adaptive(
-        value: value,
-        onChanged: onChanged,
-        activeColor: GColors.orange,
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 80),
+        child: Container(
+          width: double.infinity,
+          height: 52,
+          decoration: BoxDecoration(
+            color: widget.outlined
+                ? Colors.transparent
+                : widget.color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: widget.color.withValues(alpha: 0.4),
+            ),
+          ),
+          child: Center(
+            child: widget.isLoading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation(widget.color),
+                    ),
+                  )
+                : Text(
+                    widget.label,
+                    style: GTextStyle.labelLarge.copyWith(
+                      color: widget.color,
+                    ),
+                  ),
+          ),
+        ),
       ),
     );
   }

@@ -49,7 +49,7 @@ class _TrendsPageState extends ConsumerState<TrendsPage>
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('🔥 Tendances', style: GTextStyle.headlineMedium),
+                  Text('Tendances', style: GTextStyle.headlineMedium),
                   Consumer(
                     builder: (_, ref, __) {
                       final activeAsync = ref.watch(activeUsersProvider);
@@ -314,7 +314,11 @@ class _FeaturedPlaceholder extends StatelessWidget {
           borderRadius: BorderRadius.circular(GRadius.lg),
         ),
         child: const Center(
-          child: Text('🔥', style: TextStyle(fontSize: 60)),
+          child: Icon(
+            Icons.local_fire_department_rounded,
+            color: Colors.white,
+            size: 48,
+          ),
         ),
       ),
     );
@@ -410,7 +414,12 @@ class _FeaturedContent extends StatelessWidget {
           ),
         ),
         child: const Center(
-            child: Text('🔥', style: TextStyle(fontSize: 60))),
+          child: Icon(
+            Icons.local_fire_department_rounded,
+            color: Colors.white,
+            size: 48,
+          ),
+        ),
       );
 
   String _formatCount(int n) {

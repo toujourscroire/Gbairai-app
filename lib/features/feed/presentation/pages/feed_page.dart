@@ -227,7 +227,20 @@ class _EmptyFeed extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('🔥', style: TextStyle(fontSize: 64)),
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: GColors.surface,
+              borderRadius: BorderRadius.circular(GRadius.xl),
+              border: Border.all(color: GColors.border, width: 0.5),
+            ),
+            child: const Icon(
+              Icons.local_fire_department_outlined,
+              color: GColors.orange,
+              size: 28,
+            ),
+          ),
           const SizedBox(height: GSpacing.lg),
           Text(
             'Aucun Gbairai pour l\'instant',

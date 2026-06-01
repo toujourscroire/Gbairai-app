@@ -6,7 +6,6 @@ import 'dart:async';
 import '../../../../core/design/design_tokens.dart';
 import '../../../../core/design/animations/haptic_service.dart';
 import '../../../../routing/route_names.dart';
-import '../../../../core/error/failures.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/otp_input_field.dart';
 
@@ -15,14 +14,13 @@ class OtpVerificationPage extends ConsumerStatefulWidget {
   const OtpVerificationPage({super.key, required this.phone});
 
   @override
-  ConsumerState<OtpVerificationPage> createState() => _OtpVerificationPageState();
+  ConsumerState<OtpVerificationPage> createState() =>
+      _OtpVerificationPageState();
 }
 
 class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
-  final List<TextEditingController> _controllers = List.generate(
-    6,
-    (_) => TextEditingController(),
-  );
+  final List<TextEditingController> _controllers =
+      List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
   int _retrySeconds = 30;
@@ -39,8 +37,12 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
   @override
   void dispose() {
     _timer?.cancel();
-    for (final c in _controllers) { c.dispose(); }
-    for (final f in _focusNodes) { f.dispose(); }
+    for (final c in _controllers) {
+      c.dispose();
+    }
+    for (final f in _focusNodes) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -56,8 +58,7 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
     });
   }
 
-  String get _otp =>
-      _controllers.map((c) => c.text).join();
+  String get _otp => _controllers.map((c) => c.text).join();
 
   Future<void> _verify() async {
     if (_otp.length != 6) return;
@@ -82,7 +83,9 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
       }
     } else {
       await GHaptics.error();
-      for (final c in _controllers) { c.clear(); }
+      for (final c in _controllers) {
+        c.clear();
+      }
       if (mounted) _focusNodes[0].requestFocus();
     }
   }
@@ -94,97 +97,192 @@ class _OtpVerificationPageState extends ConsumerState<OtpVerificationPage> {
 
     return Scaffold(
       backgroundColor: GColors.void_,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () => context.pop(),
-        ),
-      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: GSpacing.xl),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: GSpacing.xl),
+              // ── Back button ──────────────────────────────────────────
+              const SizedBox(height: GSpacing.md),
+              GestureDetector(
+                onTap: () => context.pop(),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: GColors.surface,
+                    borderRadius: BorderRadius.circular(GRadius.md),
+                    border: Border.all(color: GColors.border),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: GColors.textPrimary,
+                    size: 16,
+                  ),
+                ),
+              ),
 
+              const SizedBox(height: GSpacing.xxl),
+
+              // ── Titre ─────────────────────────────────────────────────
               Text(
-                'Code reçu ?',
+                'Vérifie ton\ntéléphone',
                 style: GTextStyle.displaySmall,
-                textAlign: TextAlign.center,
-              ).animate().fadeIn(),
+              ).animate().fadeIn().slideY(
+                    begin: 0.15,
+                    duration: 400.ms,
+                    curve: Curves.easeOutCubic,
+                  ),
 
               const SizedBox(height: GSpacing.sm),
 
-              Text(
-                'Entre le code envoyé au\n${widget.phone}',
-                textAlign: TextAlign.center,
-                style: GTextStyle.bodyMedium.copyWith(
-                  color: GColors.textSecondary,
+              RichText(
+                text: TextSpan(
+                  style: GTextStyle.bodyLarge.copyWith(
+                    color: GColors.textSecondary,
+                  ),
+                  children: [
+                    const TextSpan(text: 'Code envoyé au '),
+                    TextSpan(
+                      text: widget.phone,
+                      style: GTextStyle.bodyLarge.copyWith(
+                        color: GColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ).animate().fadeIn(delay: 100.ms),
 
               const SizedBox(height: GSpacing.xxl),
 
-              // ── 6 cases OTP ──────────────────────────────────────────
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(6, (i) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: OtpInputField(
-                      controller: _controllers[i],
-                      focusNode: _focusNodes[i],
-                      hasError: hasError,
-                      onChanged: (value) {
-                        GHaptics.digit();
-                        if (value.isNotEmpty && i < 5) {
-                          _focusNodes[i + 1].requestFocus();
-                        } else if (value.isEmpty && i > 0) {
-                          _focusNodes[i - 1].requestFocus();
-                        }
-                        if (_otp.length == 6) _verify();
-                      },
-                    ),
-                  );
-                }),
+              // ── Champs OTP ────────────────────────────────────────────
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(6, (i) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      child: OtpInputField(
+                        controller: _controllers[i],
+                        focusNode: _focusNodes[i],
+                        hasError: hasError,
+                        onChanged: (value) {
+                          GHaptics.digit();
+                          if (value.isNotEmpty && i < 5) {
+                            _focusNodes[i + 1].requestFocus();
+                          } else if (value.isEmpty && i > 0) {
+                            _focusNodes[i - 1].requestFocus();
+                          }
+                          if (_otp.length == 6) _verify();
+                        },
+                      ),
+                    );
+                  }),
+                ),
               ).animate().fadeIn(delay: 200.ms),
 
-              if (authState is AuthError) ...[
-                const SizedBox(height: GSpacing.md),
-                Text(
-                  authState.failure.userMessage,
-                  style: GTextStyle.bodySmall.copyWith(color: GColors.error),
-                ).animate().shake(),
-              ],
+              // Message d'erreur
+              AnimatedSize(
+                duration: GDuration.fast,
+                child: authState is AuthError
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: GSpacing.md),
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: GSpacing.md,
+                              vertical: GSpacing.sm,
+                            ),
+                            decoration: BoxDecoration(
+                              color: GColors.error.withValues(alpha: 0.1),
+                              borderRadius:
+                                  BorderRadius.circular(GRadius.md),
+                              border: Border.all(
+                                color: GColors.error.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.error_outline_rounded,
+                                  color: GColors.error,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: GSpacing.sm),
+                                Text(
+                                  'Code incorrect — réessaie',
+                                  style: GTextStyle.bodySmall.copyWith(
+                                    color: GColors.error,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
 
               const SizedBox(height: GSpacing.xxl),
 
-              // Renvoyer le code
-              if (_retrySeconds > 0)
-                Text(
-                  'Renvoyer dans ${_retrySeconds}s',
-                  style: GTextStyle.bodyMedium.copyWith(
-                    color: GColors.textSecondary,
-                  ),
-                )
-              else
-                TextButton(
-                  onPressed: () async {
-                    await ref
-                        .read(authControllerProvider.notifier)
-                        .sendPhoneOtp(widget.phone);
-                    _startTimer();
-                  },
-                  child: const Text('Renvoyer le code'),
-                ),
+              // ── Renvoyer le code ──────────────────────────────────────
+              Center(
+                child: _retrySeconds > 0
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Renvoyer dans ',
+                            style: GTextStyle.bodyMedium.copyWith(
+                              color: GColors.textTertiary,
+                            ),
+                          ),
+                          Text(
+                            '${_retrySeconds}s',
+                            style: GTextStyle.bodyMedium.copyWith(
+                              color: GColors.textSecondary,
+                              fontWeight: FontWeight.w600,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                        ],
+                      )
+                    : GestureDetector(
+                        onTap: () async {
+                          await ref
+                              .read(authControllerProvider.notifier)
+                              .sendPhoneOtp(widget.phone);
+                          _startTimer();
+                        },
+                        child: Text(
+                          'Renvoyer le code',
+                          style: GTextStyle.labelLarge.copyWith(
+                            color: GColors.orange,
+                          ),
+                        ),
+                      ),
+              ).animate().fadeIn(delay: 400.ms),
 
               const Spacer(),
 
+              // ── Loading ───────────────────────────────────────────────
               if (_isLoading)
-                const CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation(GColors.orange),
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(GSpacing.md),
+                    child: const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor:
+                            AlwaysStoppedAnimation(GColors.orange),
+                      ),
+                    ),
+                  ),
                 ),
 
               const SizedBox(height: GSpacing.xl),

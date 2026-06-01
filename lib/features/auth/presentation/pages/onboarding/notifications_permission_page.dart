@@ -131,8 +131,27 @@ class _NotificationsPermissionPageState
                   angle: (_bellController.value - 0.5) * 0.3,
                   child: child,
                 ),
-                child: const Text('🔔', style: TextStyle(fontSize: 80)),
-              ).animate().scale(curve: Curves.elasticOut),
+                child: Container(
+                  width: 96,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: GColors.orange.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: GColors.orange.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.notifications_outlined,
+                    color: GColors.orange,
+                    size: 44,
+                  ),
+                ),
+              ).animate().scale(
+                    begin: const Offset(0.8, 0.8),
+                    duration: 500.ms,
+                    curve: Curves.easeOutBack,
+                  ),
 
               const SizedBox(height: GSpacing.xl),
 
@@ -145,7 +164,7 @@ class _NotificationsPermissionPageState
               const SizedBox(height: GSpacing.md),
 
               Text(
-                'Pour être le premier à voir les Gbairais 🚨\n\nOn t\'envoie max 3 alertes par jour, promis 👑',
+                'Pour être le premier à voir les Gbairais.\nOn t\'envoie max 3 alertes par jour, promis.',
                 textAlign: TextAlign.center,
                 style: GTextStyle.bodyLarge.copyWith(
                   color: GColors.textSecondary,
@@ -172,8 +191,10 @@ class _NotificationsPermissionPageState
                         color: GColors.orange,
                         borderRadius: BorderRadius.circular(GRadius.sm),
                       ),
-                      child: const Center(
-                        child: Text('⚡', style: TextStyle(fontSize: 20)),
+                      child: const Icon(
+                        Icons.notifications_active_outlined,
+                        color: Colors.white,
+                        size: 20,
                       ),
                     ),
                     const SizedBox(width: GSpacing.md),
@@ -181,7 +202,7 @@ class _NotificationsPermissionPageState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Gbairai 🚨',
+                          Text('Gbairai',
                             style: GTextStyle.labelLarge.copyWith(
                               fontWeight: FontWeight.w700,
                             )),

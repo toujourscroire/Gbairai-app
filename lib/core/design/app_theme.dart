@@ -54,14 +54,14 @@ abstract final class AppTheme {
           foregroundColor: GColors.textPrimary,
           textStyle: GTextStyle.buttonPrimary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(GRadius.lg),
+            borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(
             horizontal: GSpacing.xl,
             vertical: GSpacing.md,
           ),
           elevation: 0,
-          minimumSize: const Size(double.infinity, 54),
+          minimumSize: const Size(double.infinity, 56),
         ),
       ),
 
@@ -70,15 +70,15 @@ abstract final class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: GColors.orange,
           textStyle: GTextStyle.buttonPrimary,
-          side: const BorderSide(color: GColors.orange, width: 1.5),
+          side: const BorderSide(color: GColors.orange, width: 1.0),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(GRadius.lg),
+            borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(
             horizontal: GSpacing.xl,
             vertical: GSpacing.md,
           ),
-          minimumSize: const Size(double.infinity, 54),
+          minimumSize: const Size(double.infinity, 56),
         ),
       ),
 
@@ -96,27 +96,38 @@ abstract final class AppTheme {
         fillColor: GColors.surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: GSpacing.md,
-          vertical: GSpacing.md,
+          vertical: 18,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(GRadius.md),
-          borderSide: const BorderSide(color: GColors.border),
+          borderSide: const BorderSide(color: GColors.border, width: 0.5),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(GRadius.md),
-          borderSide: const BorderSide(color: GColors.border),
+          borderSide: const BorderSide(color: GColors.border, width: 0.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(GRadius.md),
-          borderSide: const BorderSide(color: GColors.orange, width: 1.5),
+          borderSide: const BorderSide(color: GColors.orange, width: 1.0),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(GRadius.md),
-          borderSide: const BorderSide(color: GColors.error),
+          borderSide: const BorderSide(color: GColors.error, width: 0.5),
         ),
-        hintStyle: GTextStyle.bodyMedium.copyWith(color: GColors.textTertiary),
-        labelStyle: GTextStyle.bodyMedium.copyWith(color: GColors.textSecondary),
-        errorStyle: GTextStyle.bodySmall.copyWith(color: GColors.error),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(GRadius.md),
+          borderSide: const BorderSide(color: GColors.error, width: 1.0),
+        ),
+        hintStyle: GTextStyle.bodyLarge.copyWith(color: GColors.textTertiary),
+        labelStyle: GTextStyle.bodySmall.copyWith(
+          color: GColors.textTertiary,
+          letterSpacing: 0.2,
+        ),
+        floatingLabelStyle: GTextStyle.bodySmall.copyWith(
+          color: GColors.orange,
+          fontSize: 12,
+        ),
+        errorStyle: GTextStyle.bodySmall.copyWith(color: GColors.error, fontSize: 11),
       ),
 
       // ── BottomNavigationBar ───────────────────────────────────────
