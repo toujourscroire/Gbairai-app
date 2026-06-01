@@ -174,7 +174,13 @@ class AuthRemoteDatasource {
 
     if (result == null) return null;
 
-    final profile = result['profiles'] as Map<String, dynamic>;
+    // PostgREST peut retourner profiles comme Map (1-to-1) ou List (1-to-many)
+    final profileRaw = result['profiles'];
+    final profile = profileRaw is Map<String, dynamic>
+        ? profileRaw
+        : (profileRaw is List && (profileRaw as List).isNotEmpty)
+            ? (profileRaw as List).first as Map<String, dynamic>
+            : <String, dynamic>{};
     return UserModel(
       id: result['id'] as String,
       username: result['username'] as String,
