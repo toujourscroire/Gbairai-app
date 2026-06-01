@@ -91,15 +91,38 @@ class AuthController extends StateNotifier<AuthState> {
         state = AuthUnauthenticated();
         return;
       }
+      // Vérification initiale de la session
       final session = SupabaseService.currentSession;
       if (session == null) {
         state = AuthUnauthenticated();
-        return;
+      } else {
+        final user = await _ds.getProfile(session.user.id);
+        state = user != null
+            ? AuthAuthenticated(user)
+            : AuthNeedsOnboarding(session.user.id);
       }
-      final user = await _ds.getProfile(session.user.id);
-      state = user != null
-          ? AuthAuthenticated(user)
-          : AuthNeedsOnboarding(session.user.id);
+
+      // Écouter les changements d'auth en continu (révocation, expiration)
+      SupabaseService.client.auth.onAuthStateChange.listen((event) async {
+        if (!mounted) return;
+        final s = event.session;
+        if (s == null) {
+          state = AuthUnauthenticated();
+        } else if (event.event == AuthChangeEvent.signedIn ||
+            event.event == AuthChangeEvent.tokenRefreshed ||
+            event.event == AuthChangeEvent.userUpdated) {
+          // Recharger le profil uniquement lors d'événements significatifs
+          try {
+            final user = await _ds.getProfile(s.user.id);
+            if (!mounted) return;
+            state = user != null
+                ? AuthAuthenticated(user)
+                : AuthNeedsOnboarding(s.user.id);
+          } catch (_) {
+            // Garder l'état actuel si fetch profil échoue
+          }
+        }
+      });
     } catch (e) {
       state = AuthUnauthenticated();
     }
@@ -224,7 +247,40 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
-  // ── Email ─────────────────────────────────────────────────────────────
+  // ── Email Sign-Up ─────────────────────────────────────────────────────
+  Future<bool> signUpWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    state = AuthLoading();
+    try {
+      final response = await _ds.signUpWithEmail(
+        email: email,
+        password: password,
+      );
+      if (response.session == null && response.user == null) {
+        // Email de confirmation envoyé — informer l'UI
+        state = AuthUnauthenticated();
+        return false; // false = attente confirmation email
+      }
+      if (response.session != null) {
+        await _postAuth(response.session!);
+        await AnalyticsService.authCompleted('email_signup');
+      } else {
+        // Supabase peut renvoyer un user sans session si email confirmation requis
+        state = AuthUnauthenticated();
+      }
+      return true;
+    } on AuthException catch (e) {
+      state = AuthError(Failure.serverError(message: e.message));
+      return false;
+    } on Failure catch (f) {
+      state = AuthError(f);
+      return false;
+    }
+  }
+
+  // ── Email Sign-In ─────────────────────────────────────────────────────
   Future<bool> signInWithEmail({
     required String email,
     required String password,

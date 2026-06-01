@@ -46,7 +46,8 @@ class MainShell extends ConsumerWidget {
     if (location.startsWith(RouteNames.trends)) return 1;
     if (location.startsWith(RouteNames.create)) return 2;
     if (location.startsWith(RouteNames.notifications)) return 3;
-    if (location.startsWith('/profile')) return 4;
+    if (location.startsWith(RouteNames.myProfile)) return 4;
+    if (location.startsWith('/profile')) return 4; // deep links /profile/:userId
     return 0;
   }
 

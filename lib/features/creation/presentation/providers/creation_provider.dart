@@ -124,7 +124,10 @@ class CreationNotifier extends StateNotifier<PublicationState> {
   }
 }
 
+// autoDispose garantit que l'état est réinitialisé quand l'écran de création
+// est quitté — évite qu'un état PublicationSuccess ou PublicationError
+// d'une session précédente ne soit visible lors d'une nouvelle publication.
 final creationProvider =
-    StateNotifierProvider<CreationNotifier, PublicationState>((ref) {
+    StateNotifierProvider.autoDispose<CreationNotifier, PublicationState>((ref) {
   return CreationNotifier(ref.watch(creationDatasourceProvider));
 });

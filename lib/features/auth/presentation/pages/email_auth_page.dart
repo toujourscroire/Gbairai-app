@@ -23,6 +23,7 @@ class _EmailAuthPageState extends ConsumerState<EmailAuthPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _isSignUp = false;
+  bool _emailConfirmationSent = false;
 
   @override
   void dispose() {
@@ -36,19 +37,27 @@ class _EmailAuthPageState extends ConsumerState<EmailAuthPage> {
     setState(() => _isLoading = true);
     await GHaptics.medium();
 
-    final success = await ref.read(authControllerProvider.notifier).signInWithEmail(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
+    final success = _isSignUp
+        ? await ref.read(authControllerProvider.notifier).signUpWithEmail(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          )
+        : await ref.read(authControllerProvider.notifier).signInWithEmail(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
 
     if (mounted) {
       setState(() => _isLoading = false);
       if (success) {
-        final state = ref.read(authControllerProvider);
-        if (state is AuthAuthenticated) context.go(RouteNames.feed);
-        if (state is AuthNeedsOnboarding) {
-          context.go(RouteNames.onboardingIdentity, extra: state.authId);
+        final authState = ref.read(authControllerProvider);
+        if (authState is AuthAuthenticated) context.go(RouteNames.feed);
+        if (authState is AuthNeedsOnboarding) {
+          context.go(RouteNames.onboardingIdentity, extra: authState.authId);
         }
+      } else if (_isSignUp && ref.read(authControllerProvider) is AuthUnauthenticated) {
+        // Supabase returned user without session → email confirmation required
+        setState(() => _emailConfirmationSent = true);
       }
     }
   }
@@ -121,6 +130,30 @@ class _EmailAuthPageState extends ConsumerState<EmailAuthPage> {
                     return null;
                   },
                 ).animate().fadeIn(delay: 300.ms),
+
+                if (_emailConfirmationSent) ...[
+                  const SizedBox(height: GSpacing.md),
+                  Container(
+                    padding: const EdgeInsets.all(GSpacing.md),
+                    decoration: BoxDecoration(
+                      color: GColors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(GRadius.md),
+                      border: Border.all(color: GColors.orange.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.mark_email_read_outlined, color: GColors.orange, size: 20),
+                        const SizedBox(width: GSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            'Vérifie ta boîte mail pour confirmer ton compte.',
+                            style: GTextStyle.bodySmall.copyWith(color: GColors.orange),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
 
                 if (authState is AuthError) ...[
                   const SizedBox(height: GSpacing.md),

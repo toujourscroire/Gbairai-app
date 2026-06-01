@@ -16,7 +16,7 @@ abstract final class RouteNames {
   static const trends = '/trends';
   static const create = '/create';
   static const notifications = '/notifications';
-  static const myProfile = '/profile/me';
+  static const myProfile = '/my-profile';
 
   // Deep links
   static const content = '/content/:id';

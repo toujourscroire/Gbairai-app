@@ -24,12 +24,13 @@ final unreadCountProvider = FutureProvider<int>((ref) {
 // ── Actions ──────────────────────────────────────────────────────────────────
 
 class NotificationsNotifier extends StateNotifier<AsyncValue<List<NotificationItem>>> {
-  NotificationsNotifier(this._datasource)
+  NotificationsNotifier(this._datasource, this._ref)
       : super(const AsyncValue.loading()) {
     _load();
   }
 
   final NotificationsDatasource _datasource;
+  final Ref _ref;
 
   Future<void> _load() async {
     try {
@@ -66,6 +67,8 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<NotificationIt
   Future<void> markAllAsRead() async {
     await _datasource.markAllAsRead();
     await _load();
+    // Forcer le recalcul du badge non-lues dans la tab bar
+    _ref.invalidate(unreadCountProvider);
   }
 
   Future<void> refresh() => _load();
@@ -73,5 +76,5 @@ class NotificationsNotifier extends StateNotifier<AsyncValue<List<NotificationIt
 
 final notificationsProvider =
     StateNotifierProvider<NotificationsNotifier, AsyncValue<List<NotificationItem>>>(
-  (ref) => NotificationsNotifier(ref.watch(notificationsDatasourceProvider)),
+  (ref) => NotificationsNotifier(ref.watch(notificationsDatasourceProvider), ref),
 );

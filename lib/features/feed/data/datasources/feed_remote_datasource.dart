@@ -153,8 +153,8 @@ class FeedRemoteDatasource {
         .limit(100);
 
     return (result as List).map((item) {
-      final user = item['users'] as Map<String, dynamic>;
-      final profile = user['profiles'] as Map<String, dynamic>;
+      final user = _toMap(item['users']) ?? <String, dynamic>{};
+      final profile = _toMap(user['profiles']) ?? <String, dynamic>{};
       return CommentModel(
         id: item['id'] as String,
         contentId: item['content_id'] as String,
@@ -266,9 +266,17 @@ class FeedRemoteDatasource {
   }
 
   // ── Helper de mapping ─────────────────────────────────────────────
+  /// PostgREST peut retourner un objet FK comme Map (1-to-1) ou List (1-to-many).
+  /// Cette méthode normalise les deux cas vers Map<String, dynamic>?.
+  Map<String, dynamic>? _toMap(dynamic raw) {
+    if (raw is Map<String, dynamic>) return raw;
+    if (raw is List && raw.isNotEmpty) return raw.first as Map<String, dynamic>?;
+    return null;
+  }
+
   ContentModel _mapContent(Map<String, dynamic> item) {
-    final user = item['users'] as Map<String, dynamic>?;
-    final profile = user?['profiles'] as Map<String, dynamic>?;
+    final user = _toMap(item['users']);
+    final profile = _toMap(user?['profiles']);
 
     return ContentModel(
       id: item['id'] as String,
