@@ -314,7 +314,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ),
     );
     if (confirmed == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
         const SnackBar(
           content: Text(
               'Demande enregistrée. Tu recevras un email de confirmation.'),
@@ -462,7 +463,8 @@ class _SettingsToggleRow extends StatelessWidget {
           Switch.adaptive(
             value: value,
             onChanged: onChanged,
-            activeColor: GColors.orange,
+            activeThumbColor: GColors.orange,
+            activeTrackColor: GColors.orange.withValues(alpha: 0.5),
             trackOutlineColor: WidgetStatePropertyAll(GColors.border),
           ),
         ],

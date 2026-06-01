@@ -41,7 +41,9 @@ class NotificationsDatasource {
         .order('created_at', ascending: false)
         .range(offset, offset + limit - 1);
 
-    return (result as List).map(_mapItem).toList();
+    return (result as List<dynamic>)
+        .map((e) => _mapItem(e as Map<String, dynamic>))
+        .toList();
   }
 
   // ── Stream temps réel des nouvelles notifs ───────────────────────

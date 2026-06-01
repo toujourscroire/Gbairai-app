@@ -231,7 +231,8 @@ class _CreateTextPageState extends ConsumerState<CreateTextPage> {
                               value: _isAnonymous,
                               onChanged: (v) =>
                                   setState(() => _isAnonymous = v),
-                              activeColor: GColors.orange,
+                              activeThumbColor: GColors.orange,
+                              activeTrackColor: GColors.orange.withValues(alpha: 0.5),
                             ),
                           ],
                         ),

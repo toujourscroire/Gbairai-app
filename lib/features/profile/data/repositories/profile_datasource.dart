@@ -130,8 +130,8 @@ class ProfileDatasource {
     final profileRaw = row['profiles'];
     final profile = profileRaw is Map<String, dynamic>
         ? profileRaw
-        : (profileRaw is List && (profileRaw as List).isNotEmpty)
-            ? (profileRaw as List).first as Map<String, dynamic>
+        : (profileRaw is List<dynamic> && profileRaw.isNotEmpty)
+            ? profileRaw.first as Map<String, dynamic>
             : <String, dynamic>{};
     return UserModel(
       id: row['id'] as String,

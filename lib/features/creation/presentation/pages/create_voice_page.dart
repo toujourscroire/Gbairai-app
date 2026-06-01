@@ -426,7 +426,8 @@ class _CreateVoicePageState extends ConsumerState<CreateVoicePage> {
                     Switch.adaptive(
                       value: _isAnonymous,
                       onChanged: (v) => setState(() => _isAnonymous = v),
-                      activeColor: GColors.orange,
+                      activeThumbColor: GColors.orange,
+                      activeTrackColor: GColors.orange.withValues(alpha: 0.5),
                     ),
                   ],
                 ),

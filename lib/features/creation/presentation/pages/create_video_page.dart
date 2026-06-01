@@ -313,7 +313,8 @@ class _CreateVideoPageState extends ConsumerState<CreateVideoPage> {
                             value: _isAnonymous,
                             onChanged: (v) =>
                                 setState(() => _isAnonymous = v),
-                            activeColor: GColors.orange,
+                            activeThumbColor: GColors.orange,
+                            activeTrackColor: GColors.orange.withValues(alpha: 0.5),
                           ),
                         ],
                       ),
