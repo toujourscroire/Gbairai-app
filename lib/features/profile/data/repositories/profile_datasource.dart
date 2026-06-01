@@ -127,7 +127,12 @@ class ProfileDatasource {
 
   // ── Helpers ───────────────────────────────────────────────────────
   UserModel _mapUser(Map<String, dynamic> row) {
-    final profile = row['profiles'] as Map<String, dynamic>;
+    final profileRaw = row['profiles'];
+    final profile = profileRaw is Map<String, dynamic>
+        ? profileRaw
+        : (profileRaw is List && (profileRaw as List).isNotEmpty)
+            ? (profileRaw as List).first as Map<String, dynamic>
+            : <String, dynamic>{};
     return UserModel(
       id: row['id'] as String,
       username: row['username'] as String,

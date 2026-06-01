@@ -90,8 +90,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Future<void> _signOut() async {
     setState(() => _loading = true);
-    await FcmService.deleteToken();
-    await SupabaseService.client.auth.signOut();
+    // Passe par AuthController : nettoie GoogleSignIn, SecureStorage,
+    // RateLimiter et met à jour l'état Riverpod correctement
+    await ref.read(authControllerProvider.notifier).signOut();
     if (mounted) context.go('/');
   }
 
