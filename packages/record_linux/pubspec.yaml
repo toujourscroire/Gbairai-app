@@ -1,0 +1,17 @@
+name: record_linux
+description: >
+  Local stub for record_linux. record_linux 0.7.2 (pub.dev) was never updated
+  to implement record_platform_interface >= 1.5.0 (startStream, hasPermission
+  signature change). This stub provides compilable no-op implementations.
+  It is NEVER instantiated on iOS — record_darwin handles all iOS recording.
+version: 0.7.3
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  record_platform_interface: ">=1.5.0 <2.0.0"
