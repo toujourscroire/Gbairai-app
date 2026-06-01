@@ -87,16 +87,21 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> _init() async {
     try {
+      debugPrint('[BOOT 7] AuthController._init() started');
       if (!SupabaseService.isReady) {
+        debugPrint('[BOOT 7] Supabase NOT ready → AuthUnauthenticated');
         state = AuthUnauthenticated();
         return;
       }
       // Vérification initiale de la session
       final session = SupabaseService.currentSession;
       if (session == null) {
+        debugPrint('[BOOT 7] No session → AuthUnauthenticated → WelcomePage');
         state = AuthUnauthenticated();
       } else {
+        debugPrint('[BOOT 7] Session found → fetching profile...');
         final user = await _ds.getProfile(session.user.id);
+        debugPrint('[BOOT 7] Profile fetched: ${user?.username ?? "null → NeedsOnboarding"}');
         state = user != null
             ? AuthAuthenticated(user)
             : AuthNeedsOnboarding(session.user.id);

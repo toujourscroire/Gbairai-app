@@ -4,6 +4,7 @@ import 'bootstrap.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  debugPrint('[BOOT 0] WidgetsFlutterBinding.ensureInitialized() done');
 
   // Lock à portrait uniquement — UX full-screen verticale
   await SystemChrome.setPreferredOrientations([

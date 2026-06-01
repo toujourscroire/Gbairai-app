@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/design/app_theme.dart';
@@ -8,7 +9,9 @@ class GbairaiApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    debugPrint('[BOOT 6] GbairaiApp.build() called — router initializing');
     final router = ref.watch(routerProvider);
+    debugPrint('[BOOT 6] routerProvider ready — MaterialApp.router mounting');
 
     return MaterialApp.router(
       title: 'Gbairai',
