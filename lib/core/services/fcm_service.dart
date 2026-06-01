@@ -51,36 +51,48 @@ class FcmService {
   static FirebaseMessaging get _fcm => FirebaseMessaging.instance;
 
   static Future<void> initialize() async {
+    debugPrint('[BOOT 4a] FcmService.initialize() entered');
     final opts = _buildFirebaseOptions();
     if (opts == null) {
+      debugPrint('[BOOT 4b] dart-defines Firebase absents — FCM désactivé');
       _log.w('[FCM] dart-defines Firebase absents — FCM désactivé (builds locaux OK)');
       return;
     }
+    debugPrint('[BOOT 4b] Firebase options built — FIREBASE_PROJECT_ID=$_kFirebaseProjectId');
 
     // Firebase.apps.isEmpty évite "App already initialized"
     if (Firebase.apps.isEmpty) {
+      debugPrint('[BOOT 4c] Firebase.initializeApp() starting...');
       await Firebase.initializeApp(options: opts);
+      debugPrint('[BOOT 4c] Firebase.initializeApp() DONE');
+    } else {
+      debugPrint('[BOOT 4c] Firebase already initialized — skipping');
     }
 
     // Enregistrer le handler background
+    debugPrint('[BOOT 4d] Registering background message handler');
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    // Configurer les options iOS — demande permission séparément (géré dans onboarding)
+    // Configurer les options iOS
+    debugPrint('[BOOT 4e] setForegroundNotificationPresentationOptions...');
     await _fcm.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
     );
+    debugPrint('[BOOT 4e] setForegroundNotificationPresentationOptions DONE');
 
     // Écouter les messages foreground
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-
-    // Écouter les taps sur notifications (app en background → foreground)
     FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
     // Vérifier si app ouverte depuis une notification
+    debugPrint('[BOOT 4f] getInitialMessage() starting... (can be slow)');
     final initial = await _fcm.getInitialMessage();
+    debugPrint('[BOOT 4f] getInitialMessage() DONE — hasMessage=${initial != null}');
     if (initial != null) _handleNotificationTap(initial);
+
+    debugPrint('[BOOT 4g] FcmService.initialize() complete');
   }
 
   // Demander la permission iOS (appelé dans l'onboarding)

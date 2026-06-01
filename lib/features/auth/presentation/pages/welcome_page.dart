@@ -10,6 +10,7 @@ class WelcomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('[BOOT 8] WelcomePage.build() called — screen should be visible NOW');
     return Scaffold(
       backgroundColor: GColors.void_,
       body: Stack(
