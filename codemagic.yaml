@@ -82,6 +82,8 @@ workflows:
           echo "[Firebase] APP_ID=${FIREBASE_APP_ID:0:12}... PROJECT=$FIREBASE_PROJECT_ID"
 
           flutter build ipa --release \
+            --build-number=$BUILD_NUMBER \
+            --build-name=1.0.0 \
             --dart-define=SUPABASE_URL=$SUPABASE_URL \
             --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
             --dart-define=SENTRY_DSN=$SENTRY_DSN \
