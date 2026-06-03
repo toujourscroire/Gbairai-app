@@ -12,22 +12,26 @@ final _log = Logger(printer: PrettyPrinter(methodCount: 0));
 Future<void> bootstrap() async {
   bootLog('BOOT 1 — bootstrap() démarré');
 
-  // ── BOOT 2 — Diagnostic app en premier : écran visible immédiatement ─────
-  // Le vrai GbairaiApp sera lancé via un second runApp() après les services.
+  // ── BOOT 2 — Premier runApp : BootDiagnosticApp visible immédiatement ─────
   runApp(const BootDiagnosticApp());
   bootLog('BOOT 2 — BootDiagnosticApp lancée (écran visible)');
 
-  // ── BOOT 3 — Supabase ─────────────────────────────────────────────────────
+  // ── BOOT 3 — Supabase (timeout 15s) ──────────────────────────────────────
   bootLog('BOOT 3 — Supabase.initialize() démarré...');
   try {
-    await SupabaseService.initialize();
+    await SupabaseService.initialize().timeout(
+      const Duration(seconds: 15),
+      onTimeout: () {
+        bootLog('BOOT 3 TIMEOUT — Supabase dépassé 15s, on continue');
+      },
+    );
     bootLog('BOOT 3 OK — Supabase initialisé');
   } catch (e, st) {
     _log.e('[BOOT 3] Supabase init FAILED', error: e, stackTrace: st);
     bootLog('BOOT 3 ERREUR — ${e.toString().substring(0, e.toString().length.clamp(0, 80))}');
   }
 
-  // ── BOOT 4 — Firebase/FCM ─────────────────────────────────────────────────
+  // ── BOOT 4 — Firebase/FCM (timeout 10s) ───────────────────────────────────
   bootLog('BOOT 4 — Firebase/FCM initialize() démarré...');
   try {
     await FcmService.initialize().timeout(
@@ -42,7 +46,7 @@ Future<void> bootstrap() async {
     bootLog('BOOT 4 ERREUR — ${e.toString().substring(0, e.toString().length.clamp(0, 80))}');
   }
 
-  // ── BOOT 5 — PostHog Analytics ────────────────────────────────────────────
+  // ── BOOT 5 — PostHog Analytics (timeout 8s) ───────────────────────────────
   bootLog('BOOT 5 — PostHog initialize() démarré...');
   try {
     await AnalyticsService.initialize().timeout(
@@ -57,12 +61,21 @@ Future<void> bootstrap() async {
     bootLog('BOOT 5 ERREUR — ${e.toString().substring(0, e.toString().length.clamp(0, 80))}');
   }
 
-  // ── BOOT 6 — Lancement du vrai GbairaiApp ────────────────────────────────
+  // ── BOOT 6 — Second runApp : GbairaiApp + overlay permanent ──────────────
+  // L'overlay est SIBLING de ProviderScope(GbairaiApp()) dans le Stack racine.
+  // Si GbairaiApp crashe (exception provider, router, theme) → écran noir SOUS
+  // l'overlay, qui reste visible et affiche le dernier BOOT atteint.
   bootLog('BOOT 6 — runApp(GbairaiApp) appelé...');
   runApp(
-    const ProviderScope(
-      child: GbairaiApp(),
+    Directionality(
+      textDirection: TextDirection.ltr,
+      child: Stack(
+        children: const [
+          ProviderScope(child: GbairaiApp()),
+          BootOverlay(),
+        ],
+      ),
     ),
   );
-  bootLog('BOOT 6 OK — ProviderScope monté, rendu en cours');
+  bootLog('BOOT 6 OK — ProviderScope + overlay montés');
 }

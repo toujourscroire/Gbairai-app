@@ -8,7 +8,94 @@ void bootLog(String step) {
   bootSteps.value = [...bootSteps.value, step];
 }
 
-// Affiché avant runApp(GbairaiApp) — montre chaque étape en temps réel
+// ── Overlay permanent ────────────────────────────────────────────────────────
+// Rendu comme sibling de ProviderScope(GbairaiApp()) dans un Stack racine.
+// Reste visible même si GbairaiApp crashe (écran noir) — affiché PAR-DESSUS.
+// N'utilise pas ProviderScope, GoRouter, GColors, ni aucun asset custom.
+class BootOverlay extends StatelessWidget {
+  const BootOverlay({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<List<String>>(
+      valueListenable: bootSteps,
+      builder: (_, steps, __) {
+        return Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              color: const Color(0xE6080810), // 90% opaque — laisse voir l'app dessous si elle rend
+              padding: const EdgeInsets.fromLTRB(20, 52, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'GBAIRAI — BOOT DIAGNOSTIC',
+                    style: TextStyle(
+                      color: Color(0xFFE85D04),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  ...steps.map(
+                    (s) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        '✓ $s',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          height: 1.4,
+                          decoration: TextDecoration.none,
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (steps.isNotEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 10,
+                            height: 10,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1.5,
+                              color: Color(0xFFE85D04),
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            'En cours...',
+                            style: TextStyle(
+                              color: Color(0xFF888888),
+                              fontSize: 11,
+                              decoration: TextDecoration.none,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ── App de démarrage (BOOT 0-6 seulement) ────────────────────────────────────
+// Utilisé pour le premier runApp() — affiche le fond noir + overlay immédiatement.
 class BootDiagnosticApp extends StatelessWidget {
   const BootDiagnosticApp({super.key});
 
@@ -18,99 +105,10 @@ class BootDiagnosticApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: const Color(0xFF080810),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-            child: ValueListenableBuilder<List<String>>(
-              valueListenable: bootSteps,
-              builder: (_, steps, __) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'GBAIRAI — BOOT DIAGNOSTIC',
-                      style: TextStyle(
-                        color: Color(0xFFE85D04),
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'monospace',
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      height: 1,
-                      color: const Color(0xFF2A2A3A),
-                    ),
-                    const SizedBox(height: 16),
-                    if (steps.isEmpty)
-                      const Text(
-                        'Démarrage...',
-                        style: TextStyle(
-                          color: Color(0xFF888888),
-                          fontSize: 13,
-                          fontFamily: 'monospace',
-                        ),
-                      )
-                    else
-                      ...steps.map(
-                        (s) => Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                '✓ ',
-                                style: TextStyle(
-                                  color: Color(0xFF4CAF50),
-                                  fontSize: 13,
-                                  fontFamily: 'monospace',
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  s,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontFamily: 'monospace',
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 16),
-                    // Indicateur d'activité si dernier step en cours
-                    if (steps.isNotEmpty)
-                      const Row(
-                        children: [
-                          SizedBox(
-                            width: 12,
-                            height: 12,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFFE85D04),
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'En attente...',
-                            style: TextStyle(
-                              color: Color(0xFF888888),
-                              fontSize: 11,
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
-                );
-              },
-            ),
-          ),
+        body: Stack(
+          children: const [
+            BootOverlay(),
+          ],
         ),
       ),
     );
