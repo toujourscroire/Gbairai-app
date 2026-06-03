@@ -27,7 +27,12 @@ class GbairaiApp extends ConsumerWidget {
           child: Stack(
             children: [
               child ?? const SizedBox.shrink(),
-              const BootOverlay(),
+              const Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: BootOverlay(),
+              ),
             ],
           ),
         );

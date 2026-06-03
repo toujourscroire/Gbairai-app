@@ -20,11 +20,7 @@ class BootOverlay extends StatelessWidget {
     return ValueListenableBuilder<List<String>>(
       valueListenable: bootSteps,
       builder: (_, steps, __) {
-        return Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: Material(
+        return Material(
             color: Colors.transparent,
             child: Container(
               color: const Color(0xE6080810), // 90% opaque — laisse voir l'app dessous si elle rend
@@ -87,8 +83,7 @@ class BootOverlay extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        );
+          );
       },
     );
   }
