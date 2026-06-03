@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/design/app_theme.dart';
+import 'diag/boot_diagnostics.dart';
 import 'routing/app_router.dart';
 
 class GbairaiApp extends ConsumerWidget {
@@ -8,9 +9,9 @@ class GbairaiApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint('[BOOT 6] GbairaiApp.build() called — router initializing');
+    bootLog('BOOT 7 — GbairaiApp.build() appelé');
     final router = ref.watch(routerProvider);
-    debugPrint('[BOOT 6] routerProvider ready — MaterialApp.router mounting');
+    bootLog('BOOT 7 OK — routerProvider prêt, MaterialApp.router monte');
 
     return MaterialApp.router(
       title: 'Gbairai',

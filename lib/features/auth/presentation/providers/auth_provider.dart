@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../diag/boot_diagnostics.dart' show bootLog;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -88,21 +89,21 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> _init() async {
     try {
-      debugPrint('[BOOT 7] AuthController._init() started');
+      bootLog('BOOT 8 — AuthController._init() démarré');
       if (!SupabaseService.isReady) {
-        debugPrint('[BOOT 7] Supabase NOT ready → AuthUnauthenticated');
+        bootLog('BOOT 8 — Supabase NOT ready → AuthUnauthenticated');
         state = AuthUnauthenticated();
         return;
       }
-      // Vérification initiale de la session
+      bootLog('BOOT 8 — Supabase ready, vérification session...');
       final session = SupabaseService.currentSession;
       if (session == null) {
-        debugPrint('[BOOT 7] No session → AuthUnauthenticated → WelcomePage');
+        bootLog('BOOT 8 OK — Pas de session → WelcomePage');
         state = AuthUnauthenticated();
       } else {
-        debugPrint('[BOOT 7] Session found → fetching profile...');
+        bootLog('BOOT 8 — Session trouvée → fetch profil...');
         final user = await _ds.getProfile(session.user.id);
-        debugPrint('[BOOT 7] Profile fetched: ${user?.username ?? "null → NeedsOnboarding"}');
+        bootLog('BOOT 8 OK — Profil: ${user?.username ?? "null → NeedsOnboarding"}');
         state = user != null
             ? AuthAuthenticated(user)
             : AuthNeedsOnboarding(session.user.id);

@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/design/design_tokens.dart';
+import '../../../../diag/boot_diagnostics.dart' show bootLog;
 import '../../../../routing/route_names.dart';
 
 class WelcomePage extends StatelessWidget {
@@ -10,7 +11,7 @@ class WelcomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('[BOOT 8] WelcomePage.build() called — screen should be visible NOW');
+    bootLog('BOOT 9 — WelcomePage.build() appelé — écran visible');
     return Scaffold(
       backgroundColor: GColors.void_,
       body: Stack(

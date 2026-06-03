@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'bootstrap.dart';
+import 'diag/boot_diagnostics.dart' show bootLog;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  debugPrint('[BOOT 0] WidgetsFlutterBinding.ensureInitialized() done');
+  bootLog('BOOT 0 — WidgetsFlutterBinding initialisé');
 
   // Lock à portrait uniquement — UX full-screen verticale
   await SystemChrome.setPreferredOrientations([
