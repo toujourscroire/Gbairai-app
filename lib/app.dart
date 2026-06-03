@@ -20,6 +20,7 @@ class GbairaiApp extends ConsumerWidget {
       themeMode: ThemeMode.dark,
       routerConfig: router,
       builder: (context, child) {
+        bootLog('BOOT 7b — MaterialApp.builder exécuté');
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.noScaling,
