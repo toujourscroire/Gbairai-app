@@ -281,7 +281,7 @@ class _CreateTextPageState extends ConsumerState<CreateTextPage> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: GSpacing.md, vertical: GSpacing.sm),
                     child: DropdownButtonFormField<String>(
-                      value: _selectedCity,
+                      initialValue: _selectedCity,
                       dropdownColor: GColors.elevated,
                       style: GTextStyle.bodySmall
                           .copyWith(color: GColors.textPrimary),

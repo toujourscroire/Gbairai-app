@@ -391,7 +391,7 @@ class _CreateVoicePageState extends ConsumerState<CreateVoicePage> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _selectedCity,
+                    initialValue: _selectedCity,
                     dropdownColor: GColors.elevated,
                     style: const TextStyle(color: GColors.textPrimary),
                     decoration: InputDecoration(
