@@ -21,11 +21,15 @@ class GbairaiApp extends ConsumerWidget {
       routerConfig: router,
       builder: (context, child) {
         return MediaQuery(
-          // Empêche le text scaling automatique — préserve le design
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.noScaling,
           ),
-          child: child ?? const SizedBox.shrink(),
+          child: Stack(
+            children: [
+              child ?? const SizedBox.shrink(),
+              const BootOverlay(),
+            ],
+          ),
         );
       },
     );

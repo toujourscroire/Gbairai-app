@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 import 'core/services/supabase_service.dart';
@@ -12,9 +11,10 @@ final _log = Logger(printer: PrettyPrinter(methodCount: 0));
 Future<void> bootstrap() async {
   bootLog('BOOT 1 — bootstrap() démarré');
 
-  // ── BOOT 2 — Premier runApp : BootDiagnosticApp visible immédiatement ─────
-  runApp(const BootDiagnosticApp());
-  bootLog('BOOT 2 — BootDiagnosticApp lancée (écran visible)');
+  // ── BOOT 2 — runApp unique : overlay intégré dans MaterialApp.builder ─────
+  bootLog('BOOT 2 — runApp(ProviderScope + GbairaiApp) appelé...');
+  runApp(const ProviderScope(child: GbairaiApp()));
+  bootLog('BOOT 2 OK — widget tree monté');
 
   // ── BOOT 3 — Supabase (timeout 15s) ──────────────────────────────────────
   bootLog('BOOT 3 — Supabase.initialize() démarré...');
@@ -61,21 +61,5 @@ Future<void> bootstrap() async {
     bootLog('BOOT 5 ERREUR — ${e.toString().substring(0, e.toString().length.clamp(0, 80))}');
   }
 
-  // ── BOOT 6 — Second runApp : GbairaiApp + overlay permanent ──────────────
-  // L'overlay est SIBLING de ProviderScope(GbairaiApp()) dans le Stack racine.
-  // Si GbairaiApp crashe (exception provider, router, theme) → écran noir SOUS
-  // l'overlay, qui reste visible et affiche le dernier BOOT atteint.
-  bootLog('BOOT 6 — runApp(GbairaiApp) appelé...');
-  runApp(
-    Directionality(
-      textDirection: TextDirection.ltr,
-      child: Stack(
-        children: const [
-          ProviderScope(child: GbairaiApp()),
-          BootOverlay(),
-        ],
-      ),
-    ),
-  );
-  bootLog('BOOT 6 OK — ProviderScope + overlay montés');
+  bootLog('BOOT 6 — services terminés');
 }

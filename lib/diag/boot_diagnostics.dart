@@ -94,23 +94,3 @@ class BootOverlay extends StatelessWidget {
   }
 }
 
-// ── App de démarrage (BOOT 0-6 seulement) ────────────────────────────────────
-// Utilisé pour le premier runApp() — affiche le fond noir + overlay immédiatement.
-class BootDiagnosticApp extends StatelessWidget {
-  const BootDiagnosticApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: const Color(0xFF080810),
-        body: Stack(
-          children: const [
-            BootOverlay(),
-          ],
-        ),
-      ),
-    );
-  }
-}
