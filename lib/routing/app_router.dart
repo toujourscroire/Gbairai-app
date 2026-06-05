@@ -18,6 +18,7 @@ import '../features/creation/presentation/pages/create_text_page.dart';
 import '../features/creation/presentation/pages/create_video_page.dart';
 import '../features/creation/presentation/pages/create_voice_page.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
+import '../features/profile/presentation/pages/edit_profile_page.dart';
 import '../features/profile/presentation/pages/profile_page.dart';
 import '../features/notifications/presentation/pages/notifications_page.dart';
 import '../features/legal/presentation/pages/legal_page.dart';
@@ -199,6 +200,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: RouteNames.accountSettings,
             pageBuilder: (_, __) =>
                 const MaterialPage(child: SettingsPage()),
+          ),
+          GoRoute(
+            path: RouteNames.editProfile,
+            pageBuilder: (_, __) =>
+                const MaterialPage(child: EditProfilePage()),
           ),
 
           // ── Création ─────────────────────────────────────────────────

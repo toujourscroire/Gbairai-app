@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/design/design_tokens.dart';
 import '../../../../core/design/glassmorphism.dart';
 import '../../../../shared/models/alert_model.dart';
@@ -241,7 +242,15 @@ class _AlertScreenPageState extends ConsumerState<AlertScreenPage>
                         const SizedBox(width: GSpacing.sm),
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: () {/* WhatsApp share */},
+                            onPressed: () async {
+                              final text = Uri.encodeComponent(
+                                '${alert.titleGenerated}\n\nhttps://gbairai.ci/alert/${alert.contentId}',
+                              );
+                              final url = Uri.parse('https://wa.me/?text=$text');
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(url, mode: LaunchMode.externalApplication);
+                              }
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF25D366),
                             ),

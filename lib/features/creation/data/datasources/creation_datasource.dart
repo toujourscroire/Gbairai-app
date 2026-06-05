@@ -18,7 +18,7 @@ class CreationDatasource {
     required String city,
     List<String> hashtags = const [],
   }) async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = SupabaseService.internalUserId;
     if (userId == null) throw const Failure.unauthenticated();
     if (caption.trim().isEmpty) {
       throw const Failure.validationError(field: 'caption', message: 'Le texte est vide');
@@ -74,7 +74,7 @@ class CreationDatasource {
     required String city,
     void Function(double progress)? onProgress,
   }) async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = SupabaseService.internalUserId;
     if (userId == null) throw const Failure.unauthenticated();
 
     final file = File(filePath);
@@ -144,7 +144,7 @@ class CreationDatasource {
     double? durationSeconds,
     void Function(double progress)? onProgress,
   }) async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = SupabaseService.internalUserId;
     if (userId == null) throw const Failure.unauthenticated();
     if (voiceTitle.trim().isEmpty) {
       throw const Failure.validationError(field: 'voiceTitle', message: 'Titre requis');

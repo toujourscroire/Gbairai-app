@@ -67,27 +67,39 @@ final followingFeedProvider =
 });
 
 class FeedController extends StateNotifier<FeedState> {
+  // Initialiser avec isLoading: true évite le flash d'_EmptyFeed au premier frame.
+  // Le constructeur appelle _fetchFirstPage() directement (bypass du guard de load()).
   FeedController(this._ds, {required this.isFollowing})
-      : super(const FeedState()) {
-    load();
+      : super(const FeedState(isLoading: true)) {
+    _fetchFirstPage();
   }
 
   final FeedRemoteDatasource _ds;
   final bool isFollowing;
 
-  Future<void> load() async {
-    if (state.isLoading) return;
-    state = state.copyWith(isLoading: true, error: null);
+  // ── Méthode interne partagée — pas de guard isLoading ────────────────
+  // Requiert que isLoading soit déjà true dans l'état courant.
+  Future<void> _fetchFirstPage() async {
     try {
       final items = await _fetchPage(0);
+      if (!mounted) return;
       state = state.copyWith(
         items: items,
         isLoading: false,
         hasMore: items.length == AppConstants.feedPageSize,
+        error: null,
       );
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     }
+  }
+
+  // ── Rechargement explicite (pull-to-refresh, retry) ──────────────────
+  Future<void> load() async {
+    if (state.isLoading) return;
+    state = state.copyWith(isLoading: true, error: null);
+    await _fetchFirstPage();
   }
 
   Future<void> loadMore() async {
@@ -95,19 +107,22 @@ class FeedController extends StateNotifier<FeedState> {
     state = state.copyWith(isLoadingMore: true);
     try {
       final items = await _fetchPage(state.items.length);
+      if (!mounted) return;
       state = state.copyWith(
         items: [...state.items, ...items],
         isLoadingMore: false,
         hasMore: items.length == AppConstants.feedPageSize,
       );
     } catch (_) {
+      if (!mounted) return;
       state = state.copyWith(isLoadingMore: false);
     }
   }
 
   Future<void> refresh() async {
-    state = const FeedState();
-    await load();
+    if (state.isLoading) return;
+    state = const FeedState(isLoading: true);
+    await _fetchFirstPage();
   }
 
   void updateCurrentIndex(int index) {
@@ -119,16 +134,20 @@ class FeedController extends StateNotifier<FeedState> {
   }
 
   Future<void> react(String contentId, String reactionType) async {
-    await _ds.react(contentId: contentId, reactionType: reactionType);
-    // Mise à jour optimiste locale
-    final idx = state.items.indexWhere((c) => c.id == contentId);
-    if (idx != -1) {
-      final items = [...state.items];
-      items[idx] = items[idx].copyWith(
-        myReaction: reactionType,
-        reactionsCount: items[idx].reactionsCount + 1,
-      );
-      state = state.copyWith(items: items);
+    try {
+      await _ds.react(contentId: contentId, reactionType: reactionType);
+      // Mise à jour optimiste locale
+      final idx = state.items.indexWhere((c) => c.id == contentId);
+      if (idx != -1) {
+        final items = [...state.items];
+        items[idx] = items[idx].copyWith(
+          myReaction: reactionType,
+          reactionsCount: items[idx].reactionsCount + 1,
+        );
+        state = state.copyWith(items: items);
+      }
+    } catch (_) {
+      // Réaction échouée silencieusement — UI reste cohérente, Sentry capture l'erreur
     }
   }
 

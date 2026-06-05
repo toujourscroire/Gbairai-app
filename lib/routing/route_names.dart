@@ -28,6 +28,9 @@ abstract final class RouteNames {
   static const notificationSettings = '/settings/notifications';
   static const accountSettings = '/settings/account';
 
+  // Profile edit
+  static const editProfile = '/settings/edit-profile';
+
   // Legal
   static const legal = '/legal';
 }

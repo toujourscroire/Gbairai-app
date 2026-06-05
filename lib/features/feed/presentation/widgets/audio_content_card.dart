@@ -4,6 +4,7 @@ import '../../../../core/design/design_tokens.dart';
 import '../../../../core/design/glassmorphism.dart';
 import '../../../../core/extensions/datetime_extensions.dart';
 import '../../../../shared/models/content_model.dart';
+import 'comment_sheet.dart';
 import 'content_actions_column.dart';
 import 'content_info_row.dart';
 import 'voice_reaction_sheet.dart';
@@ -198,6 +199,12 @@ class _AudioContentCardState extends State<AudioContentCard>
             child: ContentActionsColumn(
               content: widget.content,
               onReact: widget.onReact,
+              onComment: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => CommentSheet(contentId: widget.content.id),
+              ),
               onVoiceReact: () => showModalBottomSheet(
                 context: context,
                 backgroundColor: Colors.transparent,

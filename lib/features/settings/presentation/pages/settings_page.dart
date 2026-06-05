@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/design/design_tokens.dart';
 import '../../../../core/services/fcm_service.dart';
 import '../../../../core/services/supabase_service.dart';
+import '../../../../routing/route_names.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -145,7 +146,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       _SettingsRow(
                         icon: Icons.person_outline_rounded,
                         label: 'Modifier le profil',
-                        onTap: () {},
+                        onTap: () => context.push(RouteNames.editProfile),
                       ),
                       _Separator(),
                       _SettingsRow(
@@ -286,7 +287,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _confirmDeleteAccount(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -314,13 +314,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ],
       ),
     );
-    if (confirmed == true && mounted) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Demande enregistrée. Tu recevras un email de confirmation.'),
-        ),
-      );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _loading = true);
+    try {
+      await ref.read(authControllerProvider.notifier).deleteAccount();
+      if (mounted) context.go('/');
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur : ${e.toString()}'),
+            backgroundColor: GColors.error,
+          ),
+        );
+      }
     }
   }
 }

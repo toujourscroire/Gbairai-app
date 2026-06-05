@@ -6,6 +6,19 @@ class SupabaseService {
 
   static bool _initialized = false;
 
+  // ── ID interne (users.id, gen_random_uuid) ────────────────────────
+  // DISTINCT de currentUser.id (qui est users.auth_id, le UUID Supabase auth).
+  // Toutes les FK de la DB (reactions, follows, comments…) référencent users.id.
+  // Settée par AuthController après _postAuth(), clearée après signOut/deleteAccount.
+  static String? _internalUserId;
+
+  /// L'UUID interne de l'utilisateur courant dans la table `users` (≠ auth UUID).
+  /// Null si non connecté ou avant que _postAuth n'ait été appelé.
+  static String? get internalUserId => _internalUserId;
+
+  static void setInternalUserId(String id) => _internalUserId = id;
+  static void clearInternalUserId() => _internalUserId = null;
+
   static Future<void> initialize() async {
     if (AppConstants.supabaseUrl.isEmpty || AppConstants.supabaseAnonKey.isEmpty) {
       throw Exception('SUPABASE_URL or SUPABASE_ANON_KEY is empty — check dart-define');

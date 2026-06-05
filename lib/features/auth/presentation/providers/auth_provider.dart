@@ -1,10 +1,11 @@
+import 'dart:async';
+import 'dart:math';
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:crypto/crypto.dart';
-import 'dart:math';
-import 'dart:convert';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/security/rate_limiter.dart';
@@ -85,6 +86,15 @@ class AuthController extends StateNotifier<AuthState> {
   final GoogleSignIn _googleSignIn;
   final SecureStorageService _secureStorage;
 
+  // ignore: cancel_subscriptions
+  StreamSubscription<dynamic>? _authSubscription;
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
+  }
+
   Future<void> _init() async {
     try {
       if (!SupabaseService.isReady) {
@@ -96,13 +106,16 @@ class AuthController extends StateNotifier<AuthState> {
         state = AuthUnauthenticated();
       } else {
         final user = await _ds.getProfile(session.user.id);
-        state = user != null
-            ? AuthAuthenticated(user)
-            : AuthNeedsOnboarding(session.user.id);
+        if (user != null) {
+          SupabaseService.setInternalUserId(user.id);
+          state = AuthAuthenticated(user);
+        } else {
+          state = AuthNeedsOnboarding(session.user.id);
+        }
       }
 
       // Écouter les changements d'auth en continu (révocation, expiration)
-      SupabaseService.client.auth.onAuthStateChange.listen((event) async {
+      _authSubscription = SupabaseService.client.auth.onAuthStateChange.listen((event) async {
         if (!mounted) return;
         final s = event.session;
         if (s == null) {
@@ -114,9 +127,12 @@ class AuthController extends StateNotifier<AuthState> {
           try {
             final user = await _ds.getProfile(s.user.id);
             if (!mounted) return;
-            state = user != null
-                ? AuthAuthenticated(user)
-                : AuthNeedsOnboarding(s.user.id);
+            if (user != null) {
+              SupabaseService.setInternalUserId(user.id);
+              state = AuthAuthenticated(user);
+            } else {
+              state = AuthNeedsOnboarding(s.user.id);
+            }
           } catch (_) {
             // Garder l'état actuel si fetch profil échoue
           }
@@ -327,6 +343,7 @@ class AuthController extends StateNotifier<AuthState> {
         interests: interests,
         avatarUrl: avatarUrl,
       );
+      SupabaseService.setInternalUserId(user.id); // users.id post-création
       state = AuthAuthenticated(user);
       await AnalyticsService.track('onboarding_completed');
       return true;
@@ -342,15 +359,31 @@ class AuthController extends StateNotifier<AuthState> {
     await _ds.signOut();
     await _secureStorage.deleteAll();
     await RateLimiter.instance.reset(RateLimitAction.authAttempt);
+    SupabaseService.clearInternalUserId();
+    state = AuthUnauthenticated();
+  }
+
+  // ── Suppression de compte (App Store 5.1.1) ──────────────────────
+  Future<void> deleteAccount() async {
+    await _googleSignIn.signOut();
+    await _ds.deleteAccount();
+    await _secureStorage.deleteAll();
+    await RateLimiter.instance.reset(RateLimitAction.authAttempt);
+    SupabaseService.clearInternalUserId();
     state = AuthUnauthenticated();
   }
 
   // ── Helpers privés ───────────────────────────────────────────────
   Future<void> _postAuth(Session session) async {
     final user = await _ds.getProfile(session.user.id);
-    state = user != null
-        ? AuthAuthenticated(user)
-        : AuthNeedsOnboarding(session.user.id);
+    if (user != null) {
+      // Cacher users.id (gen_random_uuid, ≠ session.user.id qui est users.auth_id).
+      // Utilisé par toutes les datasources pour les mutations (FK correctes).
+      SupabaseService.setInternalUserId(user.id);
+      state = AuthAuthenticated(user);
+    } else {
+      state = AuthNeedsOnboarding(session.user.id);
+    }
   }
 
   // Nonce sécurisé pour Apple Sign-In (protection replay attack)

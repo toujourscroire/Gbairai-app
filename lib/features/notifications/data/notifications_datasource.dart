@@ -31,7 +31,7 @@ class NotificationsDatasource {
     int offset = 0,
     int limit = 30,
   }) async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = SupabaseService.internalUserId;
     if (userId == null) return [];
 
     final result = await _client
@@ -48,7 +48,7 @@ class NotificationsDatasource {
 
   // ── Stream temps réel des nouvelles notifs ───────────────────────
   Stream<List<NotificationItem>> notificationsStream() {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = SupabaseService.internalUserId;
     if (userId == null) return const Stream.empty();
 
     return _client
@@ -70,7 +70,7 @@ class NotificationsDatasource {
 
   // ── Marquer toutes les notifs comme lues ─────────────────────────
   Future<void> markAllAsRead() async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = SupabaseService.internalUserId;
     if (userId == null) return;
 
     await _client
@@ -82,7 +82,7 @@ class NotificationsDatasource {
 
   // ── Compter les non-lues ─────────────────────────────────────────
   Future<int> unreadCount() async {
-    final userId = SupabaseService.currentUser?.id;
+    final userId = SupabaseService.internalUserId;
     if (userId == null) return 0;
 
     final result = await _client

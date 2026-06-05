@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/design/design_tokens.dart';
 import '../../../../shared/models/content_model.dart';
+import 'comment_sheet.dart';
 import 'content_actions_column.dart';
 import 'content_info_row.dart';
 import 'voice_reaction_sheet.dart';
@@ -83,6 +84,12 @@ class TextContentCard extends StatelessWidget {
             child: ContentActionsColumn(
               content: content,
               onReact: onReact,
+              onComment: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => CommentSheet(contentId: content.id),
+              ),
               onVoiceReact: () => showModalBottomSheet(
                 context: context,
                 backgroundColor: Colors.transparent,

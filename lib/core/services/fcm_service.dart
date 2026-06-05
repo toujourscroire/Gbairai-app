@@ -83,6 +83,8 @@ class FcmService {
 
   // Demander la permission iOS (appelé dans l'onboarding)
   static Future<bool> requestPermission() async {
+    // Firebase non initialisé (dart-defines absents en debug) — dégradation gracieuse
+    if (Firebase.apps.isEmpty) return false;
     final settings = await _fcm.requestPermission(
       alert: true,
       announcement: false,
@@ -98,6 +100,7 @@ class FcmService {
 
   // Récupérer le token FCM
   static Future<String?> getToken() async {
+    if (Firebase.apps.isEmpty) return null;
     try {
       return await _fcm.getToken();
     } catch (e) {
@@ -108,6 +111,7 @@ class FcmService {
 
   // Supprimer le token (déconnexion)
   static Future<void> deleteToken() async {
+    if (Firebase.apps.isEmpty) return;
     try {
       await _fcm.deleteToken();
     } catch (e) {

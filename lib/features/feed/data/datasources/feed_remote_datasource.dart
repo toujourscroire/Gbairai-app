@@ -16,8 +16,8 @@ class FeedRemoteDatasource {
     int limit = 10,
     List<String>? categories,
   }) async {
-    final userId = SupabaseService.currentUser?.id;
-    if (userId == null) throw const Failure.unauthenticated();
+    // Garde : vérifier que l'utilisateur est authentifié
+    if (SupabaseService.internalUserId == null) throw const Failure.unauthenticated();
 
     // RLS garantit que seuls les contenus approved + public sont retournés
     final result = await _client
@@ -48,14 +48,15 @@ class FeedRemoteDatasource {
     int offset = 0,
     int limit = 10,
   }) async {
-    final userId = SupabaseService.currentUser?.id;
-    if (userId == null) throw const Failure.unauthenticated();
+    // internalUserId = users.id (FK dans follows.follower_id)
+    final internalId = SupabaseService.internalUserId;
+    if (internalId == null) throw const Failure.unauthenticated();
 
     // Récupérer les IDs des comptes suivis
     final following = await _client
         .from('follows')
         .select('following_id')
-        .eq('follower_id', userId);
+        .eq('follower_id', internalId);
 
     if ((following as List).isEmpty) return [];
 
@@ -110,26 +111,26 @@ class FeedRemoteDatasource {
   }) async {
     if (!InputValidator.isValidUuid(contentId)) return;
 
-    final userId = SupabaseService.currentUser?.id;
-    if (userId == null) throw const Failure.unauthenticated();
+    final internalId = SupabaseService.internalUserId;
+    if (internalId == null) throw const Failure.unauthenticated();
 
     // Upsert — remplace la réaction existante
     await _client.from('reactions').upsert({
       'content_id': contentId,
-      'user_id': userId,
+      'user_id': internalId,      // users.id (FK correcte)
       'reaction_type': reactionType,
     }, onConflict: 'content_id, user_id');
   }
 
   Future<void> removeReaction(String contentId) async {
-    final userId = SupabaseService.currentUser?.id;
-    if (userId == null) return;
+    final internalId = SupabaseService.internalUserId;
+    if (internalId == null) return;
 
     await _client
         .from('reactions')
         .delete()
         .eq('content_id', contentId)
-        .eq('user_id', userId);
+        .eq('user_id', internalId);
   }
 
   // ── Commentaires ──────────────────────────────────────────────────
@@ -182,12 +183,12 @@ class FeedRemoteDatasource {
     final validation = InputValidator.validateComment(body);
     if (validation != null) throw Failure.validationError(field: 'body', message: validation);
 
-    final userId = SupabaseService.currentUser?.id;
-    if (userId == null) throw const Failure.unauthenticated();
+    final internalId = SupabaseService.internalUserId;
+    if (internalId == null) throw const Failure.unauthenticated();
 
     await _client.from('comments').insert({
       'content_id': contentId,
-      'user_id': userId,
+      'user_id': internalId,  // users.id (FK correcte)
       'parent_id': parentId,
       'body': body.trim(),
     });
@@ -201,8 +202,8 @@ class FeedRemoteDatasource {
   }) async {
     if (!InputValidator.isValidUuid(contentId)) return;
 
-    final userId = SupabaseService.currentUser?.id;
-    if (userId == null) throw const Failure.unauthenticated();
+    final internalId = SupabaseService.internalUserId;
+    if (internalId == null) throw const Failure.unauthenticated();
 
     // Vérifier que la raison est dans la liste autorisée (pas d'injection)
     const allowedReasons = [
@@ -214,7 +215,7 @@ class FeedRemoteDatasource {
     }
 
     await _client.from('reports').insert({
-      'reporter_id': userId,
+      'reporter_id': internalId,  // users.id (FK correcte)
       'target_type': 'content',
       'target_id': contentId,
       'reason': reason,
@@ -230,8 +231,8 @@ class FeedRemoteDatasource {
     bool isAnonymous = false,
   }) async {
     if (!InputValidator.isValidUuid(contentId)) return;
-    final userId = SupabaseService.currentUser?.id;
-    if (userId == null) throw const Failure.unauthenticated();
+    final internalId = SupabaseService.internalUserId;
+    if (internalId == null) throw const Failure.unauthenticated();
     if (durationSeconds <= 0 || durationSeconds > 30) {
       throw const Failure.validationError(
           field: 'duration', message: 'Durée entre 1s et 30s');
@@ -255,7 +256,7 @@ class FeedRemoteDatasource {
 
     await _client.from('voice_reactions').insert({
       'content_id': contentId,
-      'user_id': userId,
+      'user_id': internalId,      // users.id (FK correcte)
       'audio_url': audioUrl,
       'duration_seconds': durationSeconds,
       'is_anonymous': isAnonymous,

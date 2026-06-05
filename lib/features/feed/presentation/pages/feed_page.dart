@@ -153,6 +153,10 @@ class _FeedContentState extends ConsumerState<_FeedContent> {
       return const SkeletonFeed();
     }
 
+    if (feedState.error != null && feedState.items.isEmpty) {
+      return _ErrorFeed(onRetry: () => controller.load());
+    }
+
     if (feedState.items.isEmpty) {
       return const _EmptyFeed();
     }
@@ -215,6 +219,68 @@ class _ContentCard extends StatelessWidget {
           onReact: onReact,
         ),
     };
+  }
+}
+
+class _ErrorFeed extends StatelessWidget {
+  final VoidCallback onRetry;
+  const _ErrorFeed({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: GColors.surface,
+              borderRadius: BorderRadius.circular(GRadius.xl),
+              border: Border.all(color: GColors.border, width: 0.5),
+            ),
+            child: const Icon(
+              Icons.wifi_off_rounded,
+              color: GColors.textTertiary,
+              size: 28,
+            ),
+          ),
+          const SizedBox(height: GSpacing.lg),
+          Text(
+            'Impossible de charger',
+            style: GTextStyle.headlineSmall,
+          ),
+          const SizedBox(height: GSpacing.sm),
+          Text(
+            'Vérifie ta connexion',
+            style: GTextStyle.bodyMedium.copyWith(
+              color: GColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: GSpacing.xl),
+          GestureDetector(
+            onTap: onRetry,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: GSpacing.xl,
+                vertical: GSpacing.md,
+              ),
+              decoration: BoxDecoration(
+                color: GColors.orange,
+                borderRadius: BorderRadius.circular(GRadius.lg),
+              ),
+              child: Text(
+                'Réessayer',
+                style: GTextStyle.labelLarge.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

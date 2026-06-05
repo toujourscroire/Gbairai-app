@@ -90,18 +90,60 @@ class AuthRemoteDatasource {
   // ── Déconnexion ───────────────────────────────────────────────────
   Future<void> signOut() async {
     // Supprimer le token FCM côté serveur
+    // Utiliser internalUserId (users.id) — PAS currentUser.id (users.auth_id)
     try {
-      final fcmToken = await FcmService.getToken();
-      if (fcmToken != null && SupabaseService.isAuthenticated) {
+      final internalId = SupabaseService.internalUserId;
+      if (internalId != null && SupabaseService.isAuthenticated) {
         await _client.from('profiles').update({'fcm_token': null}).eq(
           'user_id',
-          SupabaseService.currentUser!.id,
+          internalId,
         );
       }
     } catch (_) {}
 
     await FcmService.deleteToken();
     await _client.auth.signOut();
+  }
+
+  // ── Suppression de compte (App Store 5.1.1) ──────────────────────
+  Future<void> deleteAccount() async {
+    // internalUserId = users.id (gen_random_uuid), requis par la FK profiles.user_id
+    final internalId = SupabaseService.internalUserId;
+    if (internalId == null) throw StateError('No authenticated user');
+
+    // 1. Effacer les données sensibles dans profiles
+    // Note: profiles n'a pas de colonne deleted_at (migration 001) — on clear juste fcm_token.
+    // La suppression réelle de auth.users est déclenchée côté serveur via
+    // la contrainte ON DELETE CASCADE sur users.auth_id → auth.users(id).
+    try {
+      await _client.from('profiles').update({
+        'fcm_token': null,
+      }).eq('user_id', internalId);
+    } catch (_) {
+      // Continue même si l'update échoue — on déconnecte quand même
+    }
+
+    // 2. Supprimer le token FCM local
+    await FcmService.deleteToken();
+
+    // 3. Déconnexion côté client
+    await _client.auth.signOut();
+  }
+
+  // ── Mise à jour profil ────────────────────────────────────────────
+  Future<void> updateProfile({
+    required String userId,
+    String? displayName,
+    String? bio,
+    String? avatarUrl,
+  }) async {
+    final updates = <String, dynamic>{};
+    if (displayName != null) updates['display_name'] = displayName;
+    if (bio != null) updates['bio'] = bio;
+    if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
+    if (updates.isEmpty) return;
+
+    await _client.from('profiles').update(updates).eq('user_id', userId);
   }
 
   // ── Profil & Onboarding ───────────────────────────────────────────
@@ -184,7 +226,7 @@ class AuthRemoteDatasource {
     return UserModel(
       id: result['id'] as String,
       username: result['username'] as String,
-      displayName: profile['display_name'] as String,
+      displayName: profile['display_name'] as String? ?? '',
       bio: profile['bio'] as String?,
       avatarUrl: profile['avatar_url'] as String?,
       bannerUrl: profile['banner_url'] as String?,

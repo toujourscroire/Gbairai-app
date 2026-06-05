@@ -65,7 +65,7 @@ class ProfileDatasource {
 
   // ── Follow ────────────────────────────────────────────────────────
   Future<void> follow(String targetUserId) async {
-    final myId = SupabaseService.currentUser?.id;
+    final myId = SupabaseService.internalUserId; // users.id (FK correcte)
     if (myId == null) throw const Failure.unauthenticated();
     if (myId == targetUserId) return; // Pas de self-follow
 
@@ -81,7 +81,7 @@ class ProfileDatasource {
 
   // ── Unfollow ──────────────────────────────────────────────────────
   Future<void> unfollow(String targetUserId) async {
-    final myId = SupabaseService.currentUser?.id;
+    final myId = SupabaseService.internalUserId; // users.id (FK correcte)
     if (myId == null) throw const Failure.unauthenticated();
 
     await _client
@@ -95,7 +95,7 @@ class ProfileDatasource {
 
   // ── Vérifier si je suis quelqu'un ────────────────────────────────
   Future<bool> isFollowing(String targetUserId) async {
-    final myId = SupabaseService.currentUser?.id;
+    final myId = SupabaseService.internalUserId; // users.id (FK correcte)
     if (myId == null) return false;
 
     final result = await _client
