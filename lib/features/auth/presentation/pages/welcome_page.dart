@@ -10,6 +10,7 @@ class WelcomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('[WELCOME] WelcomePage.build() called ✅');
     return Scaffold(
       backgroundColor: GColors.void_,
       body: Stack(

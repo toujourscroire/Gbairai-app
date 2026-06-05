@@ -96,20 +96,28 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   Future<void> _init() async {
+    debugPrint('[AUTH] _init() start — isReady=${SupabaseService.isReady}');
     try {
       if (!SupabaseService.isReady) {
+        debugPrint('[AUTH] Supabase not ready → AuthUnauthenticated');
         state = AuthUnauthenticated();
         return;
       }
       final session = SupabaseService.currentSession;
+      debugPrint('[AUTH] currentSession=${session != null ? "EXISTS" : "null"}');
       if (session == null) {
+        debugPrint('[AUTH] no session → AuthUnauthenticated');
         state = AuthUnauthenticated();
       } else {
+        debugPrint('[AUTH] session found — fetching profile...');
         final user = await _ds.getProfile(session.user.id);
+        debugPrint('[AUTH] getProfile result=${user != null ? "FOUND(${user.id})" : "null"}');
         if (user != null) {
           SupabaseService.setInternalUserId(user.id);
+          debugPrint('[AUTH] → AuthAuthenticated');
           state = AuthAuthenticated(user);
         } else {
+          debugPrint('[AUTH] → AuthNeedsOnboarding');
           state = AuthNeedsOnboarding(session.user.id);
         }
       }

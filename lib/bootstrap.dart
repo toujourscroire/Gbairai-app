@@ -9,29 +9,34 @@ import 'app.dart';
 final _log = Logger(printer: PrettyPrinter(methodCount: 0));
 
 Future<void> bootstrap() async {
+  debugPrint('[BOOTSTRAP] start');
+
   // ── Supabase d'abord — critique pour AuthController ─────────────────
-  // Timeout réduit à 6s : au-delà, Supabase est considéré indisponible.
-  // AuthController._init() vérifie SupabaseService.isReady et se dégrade
-  // gracieusement vers AuthUnauthenticated si false.
+  debugPrint('[BOOTSTRAP] Supabase initialize...');
   try {
     await SupabaseService.initialize().timeout(
       const Duration(seconds: 6),
       onTimeout: () {
+        debugPrint('[BOOTSTRAP] Supabase init TIMEOUT (6s) — continuing without Supabase');
         _log.w('[Bootstrap] Supabase init timeout (6s) — continuing without Supabase');
       },
     );
+    debugPrint('[BOOTSTRAP] Supabase OK — isReady=${SupabaseService.isReady}');
   } catch (e, st) {
+    debugPrint('[BOOTSTRAP] Supabase FAILED: $e');
     _log.e('[Bootstrap] Supabase init failed', error: e, stackTrace: st);
   }
 
+  debugPrint('[BOOTSTRAP] isReady=${SupabaseService.isReady}');
+
   // ── Lancement app IMMÉDIATEMENT après Supabase ───────────────────────
-  // Firebase et Analytics s'initialisent en parallèle sans bloquer l'UI.
-  // Premier frame rendu maintenant — la launch screen iOS est libérée.
+  debugPrint('[BOOTSTRAP] calling runApp()...');
   runApp(
     const ProviderScope(
       child: GbairaiApp(),
     ),
   );
+  debugPrint('[BOOTSTRAP] runApp() called');
 
   // ── Firebase + FCM — non bloquant, en arrière-plan ───────────────────
   try {

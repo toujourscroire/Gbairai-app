@@ -49,27 +49,36 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuth = authController is AuthAuthenticated;
       final isLoading = authController is AuthInitial;
 
-      final isAuthRoute = state.fullPath?.startsWith('/auth') ?? false;
-      final isOnboardingRoute = state.fullPath?.startsWith('/onboarding') ?? false;
-      final isRootRoute = state.fullPath == RouteNames.welcome;
+      // BUG FIX: state.fullPath peut être null lors de la 1ère évaluation GoRouter
+      final currentPath = state.fullPath ?? state.uri.path;
+      final isAuthRoute = currentPath.startsWith('/auth');
+      final isOnboardingRoute = currentPath.startsWith('/onboarding');
+      // Correspondance exacte sur '/' ET sur '/welcome' si RouteNames.welcome change
+      final isRootRoute = currentPath == RouteNames.welcome || currentPath == '/';
+
+      debugPrint('[ROUTER] redirect — auth=${authController.runtimeType} path=$currentPath isLoading=$isLoading isAuth=$isAuth isRoot=$isRootRoute');
 
       if (isLoading) return null;
 
       // Si connecté et sur page auth/welcome → feed
       if (isAuth && (isAuthRoute || isRootRoute)) {
+        debugPrint('[ROUTER] → redirect to feed');
         return RouteNames.feed;
       }
 
       // Si onboarding requis
       if (authController is AuthNeedsOnboarding && !isOnboardingRoute) {
+        debugPrint('[ROUTER] → redirect to onboarding');
         return '${RouteNames.onboardingIdentity}?authId=${authController.authId}';
       }
 
       // Si non connecté et sur page protégée → welcome
       if (!isAuth && !isAuthRoute && !isOnboardingRoute && !isRootRoute) {
+        debugPrint('[ROUTER] → redirect to welcome (protected route)');
         return RouteNames.welcome;
       }
 
+      debugPrint('[ROUTER] → no redirect');
       return null;
     },
     routes: [
