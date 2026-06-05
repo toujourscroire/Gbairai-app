@@ -20,17 +20,20 @@ class GbairaiApp extends ConsumerWidget {
       routerConfig: router,
       builder: (context, child) {
         if (child == null) {
-          // GoRouter n'a pas encore résolu de route — fallback visible
+          // Fallback rouge visible — GoRouter n'a pas résolu de route
+          // Si tu vois cet écran : le routeur est bloqué avant la WelcomePage
           debugPrint('[APP] builder child==null — GoRouter not resolved yet');
           return const ColoredBox(
-            color: Color(0xFF080810),
+            color: Color(0xFFCC0000), // Rouge vif — impossible à confondre avec le fond noir
             child: Center(
-              child: SizedBox(
-                width: 32,
-                height: 32,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation(Color(0xFFE85D04)),
+              child: Text(
+                '[APP] child==null\nGoRouter not resolved',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.none,
                 ),
               ),
             ),
