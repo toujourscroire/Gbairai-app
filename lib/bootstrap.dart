@@ -4,63 +4,51 @@ import 'package:logger/logger.dart';
 import 'core/services/supabase_service.dart';
 import 'core/services/fcm_service.dart';
 import 'core/services/analytics_service.dart';
-import 'diag/boot_diagnostics.dart';
 import 'app.dart';
 
 final _log = Logger(printer: PrettyPrinter(methodCount: 0));
 
 Future<void> bootstrap() async {
-  bootLog('BOOT 1 — bootstrap() démarré');
-
-  // ── BOOT 2 — runApp unique : overlay intégré dans MaterialApp.builder ─────
-  bootLog('BOOT 2 — runApp(ProviderScope + GbairaiApp) appelé...');
-  runApp(const ProviderScope(child: GbairaiApp()));
-  bootLog('BOOT 2 OK — widget tree monté');
-
-  // ── BOOT 3 — Supabase (timeout 15s) ──────────────────────────────────────
-  bootLog('BOOT 3 — Supabase.initialize() démarré...');
+  // 1. Supabase — timeout 15s (requis par AuthController)
   try {
     await SupabaseService.initialize().timeout(
       const Duration(seconds: 15),
       onTimeout: () {
-        bootLog('BOOT 3 TIMEOUT — Supabase dépassé 15s, on continue');
+        _log.w('[Bootstrap] Supabase init timeout (15s) — continuing');
       },
     );
-    bootLog('BOOT 3 OK — Supabase initialisé');
   } catch (e, st) {
-    _log.e('[BOOT 3] Supabase init FAILED', error: e, stackTrace: st);
-    bootLog('BOOT 3 ERREUR — ${e.toString().substring(0, e.toString().length.clamp(0, 80))}');
+    _log.e('[Bootstrap] Supabase init failed', error: e, stackTrace: st);
   }
 
-  // ── BOOT 4 — Firebase/FCM (timeout 10s) ───────────────────────────────────
-  bootLog('BOOT 4 — Firebase/FCM initialize() démarré...');
+  // 2. Firebase + FCM — timeout 10s
   try {
     await FcmService.initialize().timeout(
       const Duration(seconds: 10),
       onTimeout: () {
-        bootLog('BOOT 4 TIMEOUT — Firebase dépassé 10s, on continue');
+        _log.w('[Bootstrap] FCM init timeout (10s) — continuing');
       },
     );
-    bootLog('BOOT 4 OK — Firebase initialisé');
   } catch (e, st) {
-    _log.e('[BOOT 4] Firebase/FCM init failed', error: e, stackTrace: st);
-    bootLog('BOOT 4 ERREUR — ${e.toString().substring(0, e.toString().length.clamp(0, 80))}');
+    _log.e('[Bootstrap] Firebase/FCM init failed', error: e, stackTrace: st);
   }
 
-  // ── BOOT 5 — PostHog Analytics (timeout 8s) ───────────────────────────────
-  bootLog('BOOT 5 — PostHog initialize() démarré...');
+  // 3. Analytics (PostHog) — timeout 8s
   try {
     await AnalyticsService.initialize().timeout(
       const Duration(seconds: 8),
       onTimeout: () {
-        bootLog('BOOT 5 TIMEOUT — PostHog dépassé 8s, on continue');
+        _log.w('[Bootstrap] Analytics init timeout (8s) — continuing');
       },
     );
-    bootLog('BOOT 5 OK — PostHog initialisé');
   } catch (e, st) {
-    _log.e('[BOOT 5] Analytics init failed', error: e, stackTrace: st);
-    bootLog('BOOT 5 ERREUR — ${e.toString().substring(0, e.toString().length.clamp(0, 80))}');
+    _log.e('[Bootstrap] Analytics init failed', error: e, stackTrace: st);
   }
 
-  bootLog('BOOT 6 — services terminés');
+  // 4. Lancement app — UN SEUL runApp, après les services
+  runApp(
+    const ProviderScope(
+      child: GbairaiApp(),
+    ),
+  );
 }

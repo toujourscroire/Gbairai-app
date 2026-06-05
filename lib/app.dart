@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/design/app_theme.dart';
-import 'diag/boot_diagnostics.dart';
 import 'routing/app_router.dart';
 
 class GbairaiApp extends ConsumerWidget {
@@ -9,9 +8,7 @@ class GbairaiApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    bootLog('BOOT 7 — GbairaiApp.build() appelé');
     final router = ref.watch(routerProvider);
-    bootLog('BOOT 7 OK — routerProvider prêt, MaterialApp.router monte');
 
     return MaterialApp.router(
       title: 'Gbairai',
@@ -20,22 +17,12 @@ class GbairaiApp extends ConsumerWidget {
       themeMode: ThemeMode.dark,
       routerConfig: router,
       builder: (context, child) {
-        bootLog('BOOT 7b — MaterialApp.builder exécuté');
         return MediaQuery(
+          // Empêche le text scaling automatique — préserve le design
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.noScaling,
           ),
-          child: Stack(
-            children: [
-              child ?? const SizedBox.shrink(),
-              const Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: BootOverlay(),
-              ),
-            ],
-          ),
+          child: child ?? const SizedBox.shrink(),
         );
       },
     );
