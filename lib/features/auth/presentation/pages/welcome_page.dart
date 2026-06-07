@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/design/design_tokens.dart';
@@ -28,14 +27,7 @@ class WelcomePage extends StatelessWidget {
                 Column(
                   children: [
                     // Lettermark "G"
-                    _GbairaiLettermark()
-                        .animate()
-                        .fadeIn(duration: 600.ms, curve: Curves.easeOut)
-                        .scale(
-                          begin: const Offset(0.85, 0.85),
-                          duration: 600.ms,
-                          curve: Curves.easeOutCubic,
-                        ),
+                    _GbairaiLettermark(),
 
                     const SizedBox(height: GSpacing.xl),
 
@@ -45,14 +37,7 @@ class WelcomePage extends StatelessWidget {
                       style: GTextStyle.displayMedium.copyWith(
                         letterSpacing: -0.5,
                       ),
-                    )
-                        .animate()
-                        .fadeIn(delay: 200.ms, duration: 500.ms)
-                        .slideY(
-                          begin: 0.2,
-                          duration: 500.ms,
-                          curve: Curves.easeOutCubic,
-                        ),
+                    ),
 
                     const SizedBox(height: GSpacing.sm),
 
@@ -64,7 +49,7 @@ class WelcomePage extends StatelessWidget {
                         color: GColors.textSecondary,
                         height: 1.7,
                       ),
-                    ).animate().fadeIn(delay: 400.ms, duration: 500.ms),
+                    ),
                   ],
                 ),
 
@@ -80,14 +65,7 @@ class WelcomePage extends StatelessWidget {
                       _PrimaryButton(
                         label: 'Rejoindre Gbairai',
                         onTap: () => context.go(RouteNames.authChoice),
-                      )
-                          .animate()
-                          .fadeIn(delay: 600.ms, duration: 400.ms)
-                          .slideY(
-                            begin: 0.3,
-                            duration: 400.ms,
-                            curve: Curves.easeOutCubic,
-                          ),
+                      ),
 
                       const SizedBox(height: GSpacing.md),
 
@@ -104,12 +82,12 @@ class WelcomePage extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ).animate().fadeIn(delay: 800.ms, duration: 400.ms),
+                      ),
 
                       const SizedBox(height: GSpacing.xl),
 
                       // CGU
-                      _LegalText().animate().fadeIn(delay: 1000.ms),
+                      _LegalText(),
 
                       const SizedBox(height: GSpacing.lg),
                     ],
